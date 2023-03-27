@@ -20,28 +20,28 @@ signal next_state : state_type;
 begin
 
 	process(clk_i) begin
-	if(rising_edge(clk_i)) then
-		current_state <= next_state;
-	end if;
+        if(rising_edge(clk_i)) then
+            current_state <= next_state;
+        end if;
 	end process;
 	
 	process(current_state, byte_array_256_done_i) begin
-	next_state <= current_state;
-	case current_state is
-	
-	when INIT =>
-		byte_array_256_en_o <= '1';	
-		if(byte_array_256_done_i = '1') then
-		   byte_array_256_en_o <= '0';
-			next_state <= DONE;
-		else
-			next_state <= INIT;
-		end if;
-		
-	when DONE =>
-		next_state <= DONE;
-		
-	end case;
+	    next_state <= current_state;
+
+        case current_state is
+            when INIT =>
+                byte_array_256_en_o <= '1';	
+                
+                if(byte_array_256_done_i = '1') then
+                    byte_array_256_en_o <= '0';
+                    next_state <= DONE;
+                else
+                    next_state <= INIT;
+                end if;
+                
+            when DONE =>
+                next_state <= DONE;
+        end case;
 	end process;
 
 end behaviour;
