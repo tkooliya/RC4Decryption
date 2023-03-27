@@ -46,9 +46,10 @@ begin
 				i := i + 1;
 				address_w_o <= std_logic_vector(to_unsigned(i, 8));
 				data_w_o <= std_logic_vector(to_unsigned(i, 8));
-				wren_w_o <= '0';
+				wren_w_o <= '1';
 			else
 				i := 0;
+                wren_w_o <= '0';
 				byte_array_256_done_o <= '1';
 			end if;
 		end if;	
