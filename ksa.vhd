@@ -93,11 +93,11 @@ architecture rtl of ksa is
 	 begin
 	    -- Include the S memory structurally
 	
-		u0: s_memory port map ( address => address_w , 
-										clock => CLOCK_50, 
-										data => data_w, 
-										wren => wren_w, 
-										q => q);
+		u0: s_memory port map ( address_w, 
+										CLOCK_50, 
+										data_w, 
+										wren_w, 
+										q);
 		  
 		-- write your code here.  As described in teh slide set, this 
 		-- code will drive the address, data, and wren signals to

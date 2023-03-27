@@ -27,10 +27,12 @@ begin
 	
 	process(current_state, byte_array_256_done_i) begin
 	next_state <= current_state;
+	byte_array_256_en_o <= '0';
 	case current_state is
 	
-	when INIT =>
-		byte_array_256_en_o <= '1';	
+	when INIT =>	
+		
+		byte_array_256_en_o <= '1';
 		if(byte_array_256_done_i = '1') then
 		   byte_array_256_en_o <= '0';
 			next_state <= DONE;

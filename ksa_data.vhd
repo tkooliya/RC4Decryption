@@ -37,23 +37,24 @@ architecture behaviour of ksa_data is
 
 	begin
 		 
-	process(clk_i, byte_array_256_en_i)
+		process(clk_i, byte_array_256_en_i)
 
-	variable i : integer := 0;
+		variable i : integer := 0;
 
-	begin
-		if(rising_edge(clk_i)) then
-			if(i < 255 AND byte_array_256_en_i = '1') then
-				-- byte_array_256(i) <= std_logic_vector(to_unsigned(i, 8));
-				i := i + 1;
+		begin
+			if(rising_edge(clk_i)) then
 				address_w_o <= std_logic_vector(to_unsigned(i, 8));
 				data_w_o <= std_logic_vector(to_unsigned(i, 8));
-				wren_w_o <= '0';
-			else
-				i := 0;
-				byte_array_256_done_o <= '1';
-			end if;
-		end if;	
+				wren_w_o <= '1';
+				if(i < 255 AND byte_array_256_en_i = '1') then
+					-- byte_array_256(i) <= std_logic_vector(to_unsigned(i, 8));
+					i := i + 1;
+
+				else
+					i := 0;
+					byte_array_256_done_o <= '1';
+				end if;
+			end if;	
 	end process;
 
 end behaviour;
