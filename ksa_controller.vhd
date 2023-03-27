@@ -32,6 +32,7 @@ begin
 	
 	process(current_state, byte_array_256_done_i) begin
 	    next_state <= current_state;
+	    byte_array_256_en_o <= '0';
 
         case current_state is
             when INIT =>

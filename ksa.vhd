@@ -67,10 +67,10 @@ architecture rtl of ksa is
     -- These are signals that are used to connect to the memory			
 
 	
-    signal address : STD_LOGIC_VECTOR (7 DOWNTO 0);	 
-    signal data : STD_LOGIC_VECTOR (7 DOWNTO 0);
-    signal wren : STD_LOGIC;
-    signal q : STD_LOGIC_VECTOR (7 DOWNTO 0);
+    signal address  : STD_LOGIC_VECTOR (7 DOWNTO 0);
+    signal data     : STD_LOGIC_VECTOR (7 DOWNTO 0);
+    signal wren     : STD_LOGIC;
+    signal q        : STD_LOGIC_VECTOR (7 DOWNTO 0);
 	 
 	 
     -- Data signals
