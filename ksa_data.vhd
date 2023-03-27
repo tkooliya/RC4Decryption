@@ -28,7 +28,7 @@ entity ksa_data is
 end ksa_data;
 
 architecture behaviour of ksa_data is
-	-- These are signals that are used to connect to the memory	
+	-- These are signals that are used to connect to the memory
 	
 	type mem_array is array(255 downto 0) of std_logic_vector(7 downto 0); -- create the array of 256 bytes (256-8 bit numbers)
 	signal byte_array_256 : mem_array;
@@ -55,4 +55,4 @@ begin
 		end if;	
 	end process;
 
-end behaviour;		
+end behaviour;
