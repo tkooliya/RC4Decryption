@@ -35,7 +35,8 @@ architecture rtl of ksa is
 	
 	component ksa_data is
 		port(
-            clk_i 		            : in std_logic;  
+            clk_i 		            : in std_logic;
+            rst_i                   : in std_logic;
             secret_key_i            : in std_logic_vector(23 downto 0);
             byte_array_256_en_i     : in std_logic;
 			 
@@ -56,7 +57,8 @@ architecture rtl of ksa is
 	component ksa_controller is
 		port(
             clk_i 				    : in  std_logic;
-			byte_array_256_done_i   : in  std_logic;	
+            rst_i                   : in  std_logic;
+			byte_array_256_done_i   : in  std_logic;
 			byte_array_256_en_o     : out std_logic;
 			address_d_o   			: out std_logic_vector(7 downto 0)
         );
@@ -71,14 +73,16 @@ architecture rtl of ksa is
     signal data     : STD_LOGIC_VECTOR (7 DOWNTO 0);
     signal wren     : STD_LOGIC;
     signal q        : STD_LOGIC_VECTOR (7 DOWNTO 0);
-	 
+
+
+    signal rst_active_1 : std_logic;
 	 
     -- Data signals
     signal secret_key   : std_logic_vector(23 downto 0);
     signal q_m          : std_logic_vector(7 downto 0);
-    signal q_w	        : std_logic;  
+    signal q_w	        : std_logic;
     signal wren_w       : std_logic;
-    signal wren_d	    : std_logic;  
+    signal wren_d	    : std_logic;
     signal data_w	    : std_logic_vector(7 downto 0);
     signal data_d       : std_logic_vector(7 downto 0);
     signal address_w    : std_logic_vector(7 downto 0);
@@ -93,6 +97,9 @@ architecture rtl of ksa is
 	  
 
 begin
+
+    rst_active_1 <= not KEY(3);
+
     -- Include the S memory structurally
     u0 : s_memory
         port map(
@@ -114,6 +121,7 @@ begin
     ksa_data0 : ksa_data
         port map(
             clk_i                   => CLOCK_50,
+            rst_i                   => rst_active_1,
             secret_key_i            => secret_key,
             byte_array_256_en_i     => byte_array_256_en,
             q_m_i                   => q_m,
@@ -131,6 +139,7 @@ begin
     ksa_controller0 : ksa_controller 
         port map(
             clk_i                   => CLOCK_50,
+            rst_i                   => rst_active_1,
             byte_array_256_done_i   => byte_array_256_done,
             byte_array_256_en_o     => byte_array_256_en,
             address_d_o             => address_d   

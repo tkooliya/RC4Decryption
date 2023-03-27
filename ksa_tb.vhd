@@ -18,7 +18,7 @@ architecture stimulus of ksa_tb is
         );
 	end component;
 	
-	signal clk  : std_logic := '0';
+	signal clk  : std_logic := '1';
 	signal KEY  : std_logic_vector(3 downto 0);
 	signal SW   : std_logic_vector(15 downto 0); -- slider switches
 	signal LEDG : std_logic_vector(7 downto 0); -- green lights
@@ -37,6 +37,16 @@ begin
         );
 
     clk <= not clk after 5 ns;
+
+    process begin
+        KEY(3) <= '0';
+
+        wait for 10 ns;
+
+        KEY(3) <= '1';
+
+        wait;
+    end process;
 	
 end stimulus;
 

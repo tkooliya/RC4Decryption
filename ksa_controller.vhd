@@ -5,8 +5,9 @@ use ieee.numeric_std.all;
 
 entity ksa_controller is
     port(
-        clk_i 		            : in  std_logic;  
-        byte_array_256_done_i   : in std_logic;	
+        clk_i 		            : in  std_logic;
+        rst_i                   : in  std_logic;
+        byte_array_256_done_i   : in  std_logic;	
         byte_array_256_en_o     : out std_logic;
         address_d_o             : out std_logic_vector(7 downto 0)
     );
@@ -15,17 +16,20 @@ end ksa_controller;
 architecture behaviour of ksa_controller is
 
     type state_type is (
+        RESET,
         INIT,
         DONE
     );
 
-    signal current_state : state_type := INIT;
-    signal next_state : state_type;
+    signal current_state    : state_type;
+    signal next_state       : state_type;
 
 begin
 
-	process(clk_i) begin
-        if(rising_edge(clk_i)) then
+	process(clk_i, rst_i) begin
+        if(rst_i = '1') then
+            current_state <= RESET;
+        elsif(rising_edge(clk_i)) then
             current_state <= next_state;
         end if;
 	end process;
@@ -35,6 +39,9 @@ begin
 	    byte_array_256_en_o <= '0';
 
         case current_state is
+            when RESET =>
+                next_state <= INIT;
+
             when INIT =>
                 byte_array_256_en_o <= '1';	
                 
