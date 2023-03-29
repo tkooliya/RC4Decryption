@@ -58,7 +58,7 @@ begin
 		  
             if(swap_write_j_i = '1') then
 				
-                swap_j_r <= swap_j_r + to_unsigned(1, swap_j_r'length);
+                swap_j_r <= (swap_j_r + to_unsigned(q_i, q_i'length) + to_unsigned(SW(integer(swap_i_r) mod 24), 8) mod 256; -- assumption of keylength of 24 / NEED TO ADD SW
 					 
             elsif(swap_i_r = 255) then
 				
@@ -118,7 +118,6 @@ begin
         end if;
 		  
     end process;
-	 
 	 
 
     fill_done_o <= '1' when (index_r = 255) else '0';
