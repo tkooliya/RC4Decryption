@@ -1,0 +1,49 @@
+
+Task 2b:
+
+pseudo-code from lab doc:
+
+i = 0, j = 0
+for k = 0 to message_length-1 { // message_length is 32 in our implementation
+    i = (i+1) mod 256
+    j = (j+s[i]) mod 256
+
+    // swap values of s[i] and s[j]
+    temp = s[i]
+    s[i] = s[j]
+    s[j] = temp
+
+    f = s[ (s[i] + s[j]) mod 256 ]
+    decrypted_output[k] = f xor encrypted_input[k] // 8 bit wide XOR function
+}
+
+cycle 1:
+    i := i + 1
+    read s[i]
+
+cycle 2:
+    nothing
+
+cycle 3:
+    j := j + q              (s[i])
+    read s[j]
+    s_i <= q                (s[i])
+
+cycle 4:
+    read encrypted_input[k]
+
+cycle 5:
+    s_j := q                (s[j])
+    read s[s_i + s_j]
+
+cycle 6:
+    write s[i] <= s_j
+    encr_in_k <= q          (encrypted_input[k])
+
+cycle 7:
+    f := q                  (s[s_i + s_j])
+    write s[j] <= s_i
+
+cycle 8:
+    write decrypted_output[k] <= f xor encr_in_k
+    k <= k + 1
