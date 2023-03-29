@@ -18,9 +18,8 @@ end ksa;
 
 architecture rtl of ksa is
 
-    component s_memory IS
-	    PORT
-        (
+    component s_memory is
+	    port(
 		    address	    : in std_logic_vector (7 downto 0);
 		    clock	    : in std_logic := '1';
 		    data		: in std_logic_vector (7 downto 0);
@@ -28,17 +27,31 @@ architecture rtl of ksa is
 		    q		    : out std_logic_vector (7 downto 0)
         );
     end component;
-	
-    -- State signals
-	type state_t is (
-        RESET, 
-        FILL,
-        DONE
-    );
-	signal curr_state : state_t;
-    signal next_state : state_t;
 
-    signal fill_o : std_logic;
+    component ksa_controller is
+        port(
+            clk_i       : in  std_logic;
+            rst_i       : in  std_logic;
+            fill_done_i : in  std_logic;
+            fill_o      : out std_logic
+        );
+    end component;
+
+    component ksa_datapath is
+        port(
+            clk_i       : in std_logic;
+            rst_i       : in std_logic;
+    
+            fill_i      : in std_logic;
+            fill_done_o : out std_logic;
+    
+            wren_o      : out std_logic;
+            address_o   : out std_logic_vector(7 downto 0);
+            data_o      : out std_logic_vector(7 downto 0)
+        );
+    end component;
+
+    signal rst_active_1 : std_logic;
 
     -- RAM signals
 	signal address  : std_logic_vector (7 downto 0);
@@ -46,67 +59,41 @@ architecture rtl of ksa is
 	signal wren     : std_logic;
 	signal q        : std_logic_vector (7 downto 0);
 
-    signal rst_active_1 : std_logic;
+    -- Controller signals
+    signal fill_done : std_logic;
+    signal fill : std_logic;
 
-    signal i_r : unsigned(7 downto 0);
+begin
 
-	begin
+    rst_active_1 <= not KEY(3);
 
-        rst_active_1 <= not KEY(3);
+    u0 : s_memory
+        port map(
+            address,
+            CLOCK_50,
+            data,
+            wren,
+            q
+        );
 
-	    -- Include the S memory structurally
-        u0 : s_memory
-            port map (
-	            address,
-                CLOCK_50,
-                data,
-                wren,
-                q
-            );
+    controller0 : ksa_controller
+        port map(
+            clk_i       => CLOCK_50,
+            rst_i       => rst_active_1,
+            fill_done_i => fill_done,
+            fill_o      => fill
+        );
 
-    process(CLOCK_50, rst_active_1) begin
-        if(rst_active_1 = '1') then
-            curr_state <= RESET;
-        elsif(rising_edge(CLOCK_50)) then
-            curr_state <= next_state;
-        end if;
-    end process;
-
-    -- next_state logic
-    process(curr_state, i_r) begin
-        next_state <= curr_state;
-
-        case curr_state is
-            when RESET =>
-                next_state <= FILL;
-            
-            when FILL =>
-                if(i_r = 255) then
-                    next_state <= DONE;
-                end if;
-            
-            when others =>
-        end case;
-    end process;
-
-    fill_o <= '1' when (curr_state = FILL) else '0';
-    wren <= fill_o;
-
-    -- Index register
-    process(CLOCK_50, rst_active_1) begin
-        if(rst_active_1 = '1') then
-            i_r <= to_unsigned(0, i_r'length);
-        elsif(rising_edge(CLOCK_50)) then
-            if(fill_o = '1') then
-                i_r <= i_r + to_unsigned(1, i_r'length);
-            else
-                i_r <= to_unsigned(0, i_r'length);
-            end if;
-        end if;
-    end process;
-
-    address <= std_logic_vector(i_r);
-    data    <= address;
+    datapath0 : ksa_datapath
+        port map(
+            clk_i       => CLOCK_50,
+            rst_i       => rst_active_1,
+            fill_i      => fill,
+            fill_done_o => fill_done,
+            wren_o      => wren,
+            address_o   => address,
+            data_o      => data
+        );
 
 end rtl;
 
