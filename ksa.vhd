@@ -19,8 +19,7 @@ end ksa;
 architecture rtl of ksa is
 
     component s_memory is
-	    port
-        (
+	    port(
 		    address	    : in std_logic_vector (7 downto 0);
 		    clock	    : in std_logic := '1';
 		    data		: in std_logic_vector (7 downto 0);
@@ -30,12 +29,25 @@ architecture rtl of ksa is
     end component;
 
     component ksa_controller is
-        port
-        (
+        port(
             clk_i       : in  std_logic;
             rst_i       : in  std_logic;
             fill_done_i : in  std_logic;
             fill_o      : out std_logic
+        );
+    end component;
+
+    component ksa_datapath is
+        port(
+            clk_i       : in std_logic;
+            rst_i       : in std_logic;
+    
+            fill_i      : in std_logic;
+            fill_done_o : out std_logic;
+    
+            wren_o      : out std_logic;
+            address_o   : out std_logic_vector(7 downto 0);
+            data_o      : out std_logic_vector(7 downto 0)
         );
     end component;
 
@@ -51,15 +63,12 @@ architecture rtl of ksa is
     signal fill_done : std_logic;
     signal fill : std_logic;
 
-    signal index_r : unsigned(7 downto 0);
-
 begin
 
     rst_active_1 <= not KEY(3);
 
-    -- Include the S memory structurally
     u0 : s_memory
-        port map (
+        port map(
             address,
             CLOCK_50,
             data,
@@ -75,24 +84,16 @@ begin
             fill_o      => fill
         );
 
-    -- Index register
-    process(CLOCK_50, rst_active_1) begin
-        if(rst_active_1 = '1') then
-            index_r <= to_unsigned(0, index_r'length);
-        elsif(rising_edge(CLOCK_50)) then
-            if(fill = '1') then
-                index_r <= index_r + to_unsigned(1, index_r'length);
-            else
-                index_r <= to_unsigned(0, index_r'length);
-            end if;
-        end if;
-    end process;
-
-    fill_done <= '1' when (index_r = 255) else '0';
-
-    wren    <= fill;
-    address <= std_logic_vector(index_r);
-    data    <= address;
+    datapath0 : ksa_datapath
+        port map(
+            clk_i       => CLOCK_50,
+            rst_i       => rst_active_1,
+            fill_i      => fill,
+            fill_done_o => fill_done,
+            wren_o      => wren,
+            address_o   => address,
+            data_o      => data
+        );
 
 end rtl;
 
