@@ -28,28 +28,42 @@ architecture rtl of ksa is
         );
     end component;
 
-    component ksa_controller is
-        port(
-            clk_i       : in  std_logic;
-            rst_i       : in  std_logic;
-            fill_done_i : in  std_logic;
-            fill_o      : out std_logic
-        );
-    end component;
+	component ksa_controller is
+		 port(
+			  clk_i       : in  std_logic;
+			  rst_i       : in  std_logic;
+			  fill_done_i : in  std_logic;
+			  fill_o      : out std_logic;
+			  
+			  swap_done_i : in  std_logic; 
+			  swap_read_i_o : out std_logic;
+			  swap_compute_j_o  : out std_logic;
+			  swap_write_i_o  : out std_logic;
+			  swap_write_j_o  : out std_logic
+		 );
+	end component;
 
-    component ksa_datapath is
-        port(
-            clk_i       : in std_logic;
-            rst_i       : in std_logic;
-    
-            fill_i      : in std_logic;
-            fill_done_o : out std_logic;
-    
-            wren_o      : out std_logic;
-            address_o   : out std_logic_vector(7 downto 0);
-            data_o      : out std_logic_vector(7 downto 0)
-        );
-    end component;
+	component ksa_datapath is
+		 port(
+			  clk_i       : in std_logic;
+			  rst_i       : in std_logic;
+			  q_i			  : in std_logic_vector (7 downto 0);
+
+			  fill_i      : in std_logic;
+			  fill_done_o : out std_logic;
+			  
+			  swap_read_i_i : in std_logic;
+			  swap_compute_j_i : in std_logic;
+			  swap_write_i_i  : in std_logic;
+			  swap_write_j_i : in std_logic;
+			  swap_done_o : out std_logic;
+
+			  wren_o      : out std_logic;
+			  address_o   : out std_logic_vector(7 downto 0);
+			  data_o      : out std_logic_vector(7 downto 0)
+		 );
+	end component;
+
 
     signal rst_active_1 : std_logic;
 
@@ -59,9 +73,15 @@ architecture rtl of ksa is
 	signal wren     : std_logic;
 	signal q        : std_logic_vector (7 downto 0);
 
-    -- Controller signals
-    signal fill_done : std_logic;
-    signal fill : std_logic;
+   -- Controller signals
+   signal fill_done : std_logic;
+   signal fill : std_logic;
+	
+   signal swap_done : std_logic;
+   signal swap_read_i: std_logic;
+	signal swap_compute_j : std_logic;
+	signal swap_write_i : std_logic;
+	signal swap_write_j : std_logic;
 
 begin
 
@@ -81,15 +101,26 @@ begin
             clk_i       => CLOCK_50,
             rst_i       => rst_active_1,
             fill_done_i => fill_done,
-            fill_o      => fill
+            fill_o      => fill,
+				swap_done_i => swap_done, 
+			   swap_read_i_o => swap_read_i,
+			   swap_compute_j_o => swap_compute_j,
+			   swap_write_i_o  => swap_write_i,
+			   swap_write_j_o  => swap_write_j
         );
 
     datapath0 : ksa_datapath
         port map(
             clk_i       => CLOCK_50,
             rst_i       => rst_active_1,
+				q_i 				=> q,
             fill_i      => fill,
             fill_done_o => fill_done,
+				swap_read_i_i => swap_read_i,
+		      swap_compute_j_i => swap_compute_j,
+		      swap_write_i_i  => swap_write_i,
+		      swap_write_j_i => swap_write_j,
+				swap_done_o => swap_done,
             wren_o      => wren,
             address_o   => address,
             data_o      => data
