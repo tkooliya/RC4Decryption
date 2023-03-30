@@ -12,6 +12,7 @@ entity ksa_datapath is
 		  
 		swap_read_i_i       : in std_logic;
 		swap_compute_j_i    : in std_logic;
+        swap_read_j_i       : in std_logic;
 		swap_write_i_i      : in std_logic;
 		swap_write_j_i      : in std_logic;
 		swap_done_o         : out std_logic;
@@ -35,6 +36,9 @@ architecture behaviour of ksa_datapath is
     signal swap_j_r         : unsigned(7 downto 0);
     signal swap_temp_r      : unsigned(7 downto 0);
     signal swap_done        : std_logic;
+    signal swap_next_j      : unsigned(7 downto 0);
+
+    signal secret_key_byte_index   : integer;
 
 begin
 
@@ -53,9 +57,7 @@ begin
 	 
 	 
 	 -- Swap state registers
-    process(clk_i, rst_i)
-        variable i : integer;
-    begin
+    process(clk_i, rst_i) begin
         if(rst_i = '1') then
             swap_i_r    <= to_unsigned(0, swap_i_r'length);
             swap_j_r    <= to_unsigned(0, swap_j_r'length);
@@ -63,8 +65,7 @@ begin
 				
         elsif(rising_edge(clk_i)) then
             if(swap_compute_j_i = '1') then
-                i := 2 - to_integer(swap_i_r) mod 3;
-                swap_j_r <= (swap_j_r + unsigned(q_i) + unsigned(secret_key_i(8 * i + 7 downto 8 * i))); -- assumption of keylength of 24 / NEED TO ADD SW
+                swap_j_r <= swap_next_j;
                 swap_temp_r <= unsigned(q_i);
 
             elsif(swap_write_j_i = '1') then
@@ -79,28 +80,54 @@ begin
             end if;	
         end if;
     end process;
+
+    secret_key_byte_index <= 2 - (to_integer(swap_i_r) mod 3);
+    swap_next_j <= (swap_j_r + unsigned(q_i) + unsigned(secret_key_i(8 * secret_key_byte_index + 7 downto 8 * secret_key_byte_index)));
 	 
 
     fill_done_o <= '1' when (index_r = 255) else '0';
     swap_done   <= '1' when (swap_i_r = 1) else '0';
     swap_done_o <= swap_done;
-    
-    wren_o      <=  fill_i or swap_write_i_i or swap_write_j_i;
 
-    address_o   <=  std_logic_vector(index_r) when
-                        (fill_i = '1')
-                        else
-                    std_logic_vector(swap_i_r) when
-                        (swap_read_i_i = '1') or (swap_write_i_i = '1')
-                        else
-                    std_logic_vector(swap_j_r);
+    -- Memory signal control
+    process(
+        fill_i,
+        swap_read_i_i,
+        swap_compute_j_i,
+        swap_read_j_i,
+        swap_write_i_i,
+        swap_write_j_i,
+        index_r,
+        swap_i_r,
+        q_i,
+        swap_j_r,
+        swap_temp_r
+    ) begin
+        wren_o      <= '0';
+        address_o   <= "00000000";
+        data_o      <= "00000000";
 
-    data_o      <=  std_logic_vector(index_r) when
-                        (fill_i = '1')
-                        else
-                    std_logic_vector(q_i) when
-                        (swap_write_i_i = '1')
-                        else
-                    std_logic_vector(swap_temp_r);
+        if(fill_i = '1') then
+            wren_o      <= '1';
+            address_o   <= std_logic_vector(index_r);
+            data_o      <= std_logic_vector(index_r);
+
+        elsif(swap_read_i_i = '1') then
+            address_o   <= std_logic_vector(swap_i_r);
+
+        elsif(swap_read_j_i = '1') then
+            address_o   <= std_logic_vector(swap_j_r);
+
+        elsif(swap_write_i_i = '1') then
+            wren_o      <= '1';
+            address_o   <= std_logic_vector(swap_i_r);
+            data_o      <= std_logic_vector(q_i);
+
+        elsif(swap_write_j_i = '1') then
+            wren_o      <= '1';
+            address_o   <= std_logic_vector(swap_j_r);
+            data_o      <= std_logic_vector(swap_temp_r);
+        end if;
+    end process;
 
 end architecture;

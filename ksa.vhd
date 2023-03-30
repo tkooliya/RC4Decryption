@@ -38,6 +38,7 @@ architecture rtl of ksa is
             swap_done_i : in  std_logic; 
             swap_read_i_o : out std_logic;
             swap_compute_j_o  : out std_logic;
+            swap_read_j_o   : out std_logic;
             swap_write_i_o  : out std_logic;
             swap_write_j_o  : out std_logic
 		);
@@ -54,6 +55,7 @@ architecture rtl of ksa is
             
             swap_read_i_i       : in std_logic;
             swap_compute_j_i    : in std_logic;
+            swap_read_j_i       : in std_logic;
             swap_write_i_i      : in std_logic;
             swap_write_j_i      : in std_logic;
             swap_done_o         : out std_logic;
@@ -82,6 +84,7 @@ architecture rtl of ksa is
     signal swap_done : std_logic;
     signal swap_read_i: std_logic;
 	signal swap_compute_j : std_logic;
+    signal swap_read_j  : std_logic;
 	signal swap_write_i : std_logic;
 	signal swap_write_j : std_logic;
 
@@ -109,6 +112,7 @@ begin
             swap_done_i         => swap_done, 
             swap_read_i_o       => swap_read_i,
             swap_compute_j_o    => swap_compute_j,
+            swap_read_j_o       => swap_read_j,
             swap_write_i_o      => swap_write_i,
             swap_write_j_o      => swap_write_j
         );
@@ -122,6 +126,7 @@ begin
             fill_done_o         => fill_done,
             swap_read_i_i       => swap_read_i,
             swap_compute_j_i    => swap_compute_j,
+            swap_read_j_i       => swap_read_j,
             swap_write_i_i      => swap_write_i,
             swap_write_j_i      => swap_write_j,
             secret_key_i        => secret_key,

@@ -24,16 +24,19 @@ cycle 2:
 
 cycle 3:
     temp := q            // s[i]
-    j := j + q + secret_key[i mod length]   // s[i]
-    read s[j]           // wait 2 cycles
+    next_j := j + q + secret_key[i mod length]  // s[i]
+    j <= next_j
 
 cycle 4:
-    nothing
+    read s[j]      // wait 2 cycles
 
 cycle 5:
-    write s[i] <= q     // s[j]
+    nothing
 
 cycle 6:
+    write s[i] <= q     // s[j]
+
+cycle 7:
     write s[j] <= temp
     i := i + 1
 

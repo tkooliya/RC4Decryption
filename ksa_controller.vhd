@@ -9,11 +9,12 @@ entity ksa_controller is
         fill_done_i : in  std_logic;
         fill_o      : out std_logic;
 		  
-		  swap_done_i : in  std_logic; 
-		  swap_read_i_o : out std_logic;
-		  swap_compute_j_o  : out std_logic;
-		  swap_write_i_o  : out std_logic;
-		  swap_write_j_o  : out std_logic
+		swap_done_i : in  std_logic; 
+		swap_read_i_o : out std_logic;
+		swap_compute_j_o  : out std_logic;
+        swap_read_j_o   : out std_logic;
+		swap_write_i_o  : out std_logic;
+		swap_write_j_o  : out std_logic
     );
 end entity;
 
@@ -26,7 +27,8 @@ architecture behaviour of ksa_controller is
 
 		SWAP_READ_I,
 		SWAP_NOTHING_1,
-		SWAP_COMPUTE_j,
+		SWAP_COMPUTE_J,
+        SWAP_READ_J,
 		SWAP_NOTHING_2,
 		SWAP_WRITE_I,
 		SWAP_WRITE_J,
@@ -36,7 +38,7 @@ architecture behaviour of ksa_controller is
 	signal curr_state : state_t;
     signal next_state : state_t;
 
-    constant test_benching : boolean := false;
+    constant test_benching : boolean := true;
 
 begin
 
@@ -65,13 +67,16 @@ begin
             when SWAP_READ_I =>
 				next_state <= SWAP_NOTHING_1;
                 if(test_benching) then
-                    next_state <= SWAP_COMPUTE_j;
+                    next_state <= SWAP_COMPUTE_J;
                 end if;
 						  
             when SWAP_NOTHING_1 =>
-				next_state <= SWAP_COMPUTE_j;
+				next_state <= SWAP_COMPUTE_J;
+
+            when SWAP_COMPUTE_J =>
+                next_state <= SWAP_READ_J;
 						
-            when SWAP_COMPUTE_j =>
+            when SWAP_READ_J =>
 				next_state <= SWAP_NOTHING_2;
                 if(test_benching) then
                     next_state <= SWAP_WRITE_I;
@@ -95,10 +100,11 @@ begin
         end case;
     end process;
 
-    fill_o <= '1' when (curr_state = FILL) else '0';
-	swap_read_i_o <= '1' when (curr_state = SWAP_READ_I) else '0';
-	swap_compute_j_o <= '1' when (curr_state = SWAP_COMPUTE_J) else '0';
-	swap_write_i_o <= '1' when (curr_state = SWAP_WRITE_I) else '0';
-	swap_write_j_o <= '1' when (curr_state = SWAP_WRITE_J) else '0';
+    fill_o              <= '1' when (curr_state = FILL) else '0';
+	swap_read_i_o       <= '1' when (curr_state = SWAP_READ_I) else '0';
+	swap_compute_j_o    <= '1' when (curr_state = SWAP_COMPUTE_J) else '0';
+    swap_read_j_o       <= '1' when (curr_state = SWAP_READ_J) else '0';
+	swap_write_i_o      <= '1' when (curr_state = SWAP_WRITE_I) else '0';
+	swap_write_j_o      <= '1' when (curr_state = SWAP_WRITE_J) else '0';
 
 end architecture;
