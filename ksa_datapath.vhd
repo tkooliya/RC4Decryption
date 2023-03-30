@@ -86,7 +86,7 @@ begin
 	 
 
     fill_done_o <= '1' when (index_r = 255) else '0';
-    swap_done   <= '1' when (swap_i_r = 1) else '0';
+    swap_done   <= '1' when (swap_i_r = 255) else '0';
     swap_done_o <= swap_done;
 
     -- Memory signal control
