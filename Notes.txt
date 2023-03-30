@@ -1,7 +1,49 @@
+Task 2a:
+
+Lab doc pseudo-code:
+j = 0
+for i = 0 to 255 {
+    j = (j + s[i] + secret_key[i mod keylength] ) mod 256 //keylength is 3 in our impl.
+    swap values of s[i] and s[j]
+}
+
+Modified pseudo-code:
+j = 0
+for i = 0 to 255 {
+    temp = s[i]
+    j = (j + temp + secret_key[i mod keylength] ) mod 256
+    s[i] = s[j]
+    s[j] = temp
+}
+
+cycle 1:
+    read s[i]           // wait 2 cycles
+
+cycle 2:
+    nothing
+
+cycle 3:
+    temp := q            // s[i]
+    j := j + q + secret_key[i mod length]   // s[i]
+    read s[j]           // wait 2 cycles
+
+cycle 4:
+    nothing
+
+cycle 5:
+    write s[i] <= q     // s[j]
+
+cycle 6:
+    write s[j] <= temp
+    i := i + 1
+
+
+
+
 
 Task 2b:
 
-Lab doc pseudo-code
+Lab doc pseudo-code:
 
 i = 0, j = 0
 for k = 0 to message_length-1 { // message_length is 32 in our implementation
