@@ -17,30 +17,22 @@ for i = 0 to 255 {
 }
 
 cycle 1:
-    read s[i]           // wait 2 cycles
+    read s[i]
 
 cycle 2:
-    nothing
-
-cycle 3:
     temp := q            // s[i]
     next_j := j + q + secret_key[i mod length]  // s[i]
     j <= next_j
 
+cycle 3:
+    read s[j]
+
 cycle 4:
-    read s[j]      // wait 2 cycles
-
-cycle 5:
-    nothing
-
-cycle 6:
     write s[i] <= q     // s[j]
 
-cycle 7:
+cycle 5:
     write s[j] <= temp
     i := i + 1
-
-
 
 
 
@@ -71,38 +63,35 @@ for k = 0 to message_length-1 { // message_length is 32 in our implementation
     s_j = s[j]
 
     f = s[ (s_i + s_j) mod 256 ]
-    decrypted_output[k] = f xor encrypted_input[k] // 8 bit wide XOR function
 
+    decrypted_output[k] = f xor encrypted_input[k] // 8 bit wide XOR function
+    
     s[i] = s_j
     s[j] = s_i
 }
 
 
-cycle 1:
-    i := i + 1
-    read s[i]                   // wait 2 cycles
+cycle 1: read_i
+    i <= i + 1
+    read s[i + 1]
 
-cycle 2:
-    nothing
+cycle 2: read_j
+    s_i <= q_mem                // s[i]
+    j <= j + q_mem
+    read s[j + q_mem]
 
-cycle 3:
-    s_i := q                    // s[i]
-    j := j + s_i
-    read s[j]                   // wait 2 cycles
+cycle 3: read_k
+    s_j <= q_mem                // s[j]
+    read s[s_i + q_mem]
+    read encrypted_input[k]
 
-cycle 4:
-    read encrypted_input[k]     // wait 2 cycles
+cycle 4: write_k
+    f := q_mem                  // s[s_i + s_j], no register needed for f
+    write decrypted_output[k] <= (q_mem xor q_rom) // encrypted_input[k]
 
-cycle 5:
-    s_j := q                    // s[j]
-    read s[s_i + s_j]           // wait 2 cycles
-
-cycle 6:
+cycle 5: write_i
     write s[i] <= s_j
-    encr_in_k <= q              // encrypted_input[k]
 
-cycle 7:
-    f := q                      // s[s_i + s_j]
+cycle 6: write_j
     write s[j] <= s_i
-    write decrypted_output[k] <= (f xor encr_in_k)
     k <= k + 1
