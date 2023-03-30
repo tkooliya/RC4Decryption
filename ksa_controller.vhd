@@ -36,6 +36,8 @@ architecture behaviour of ksa_controller is
 	signal curr_state : state_t;
     signal next_state : state_t;
 
+    constant test_benching : boolean := false;
+
 begin
 
     -- State register
@@ -62,12 +64,18 @@ begin
             
             when SWAP_READ_I =>
 				next_state <= SWAP_NOTHING_1;
+                if(test_benching) then
+                    next_state <= SWAP_COMPUTE_j;
+                end if;
 						  
             when SWAP_NOTHING_1 =>
 				next_state <= SWAP_COMPUTE_j;
 						
             when SWAP_COMPUTE_j =>
 				next_state <= SWAP_NOTHING_2;
+                if(test_benching) then
+                    next_state <= SWAP_WRITE_I;
+                end if;
 						
             when SWAP_NOTHING_2 =>
 				next_state <= SWAP_WRITE_I;
