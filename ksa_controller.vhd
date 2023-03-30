@@ -26,10 +26,8 @@ architecture behaviour of ksa_controller is
         FILL,
 
 		SWAP_READ_I,
-		SWAP_NOTHING_1,
 		SWAP_COMPUTE_J,
         SWAP_READ_J,
-		SWAP_NOTHING_2,
 		SWAP_WRITE_I,
 		SWAP_WRITE_J,
 		  
@@ -37,8 +35,6 @@ architecture behaviour of ksa_controller is
     );
 	signal curr_state : state_t;
     signal next_state : state_t;
-
-    constant test_benching : boolean := true;
 
 begin
 
@@ -65,24 +61,12 @@ begin
                 end if;
             
             when SWAP_READ_I =>
-				next_state <= SWAP_NOTHING_1;
-                if(test_benching) then
-                    next_state <= SWAP_COMPUTE_J;
-                end if;
-						  
-            when SWAP_NOTHING_1 =>
-				next_state <= SWAP_COMPUTE_J;
+                next_state <= SWAP_COMPUTE_J;
 
             when SWAP_COMPUTE_J =>
                 next_state <= SWAP_READ_J;
 						
             when SWAP_READ_J =>
-				next_state <= SWAP_NOTHING_2;
-                if(test_benching) then
-                    next_state <= SWAP_WRITE_I;
-                end if;
-						
-            when SWAP_NOTHING_2 =>
 				next_state <= SWAP_WRITE_I;
 						
             when SWAP_WRITE_I =>
