@@ -97,38 +97,99 @@ cycle 6: write_k
     k <= k + 1
 
 
-Key 2:
+Task 2b checker:
+
+#include <stdio.h>
+#include <stdlib.h>
+
+int main()
 {
-    55,
-    32,
-    235,
-    151,
-    215,
-    146,
-    79,
-    162,
-    231,
-    208,
-    231,
-    149,
-    131,
-    242,
-    111,
-    110,
-    170,
-    140,
-    194,
-    171,
-    134,
-    170,
-    69,
-    139,
-    227,
-    164,
-    139,
-    85,
-    127,
-    115,
-    86,
-    119
-};
+    short s[256];
+    short d[32];
+    short rom[32] = {
+        55,
+        32,
+        235,
+        151,
+        215,
+        146,
+        79,
+        162,
+        231,
+        208,
+        231,
+        149,
+        131,
+        242,
+        111,
+        110,
+        170,
+        140,
+        194,
+        171,
+        134,
+        170,
+        69,
+        139,
+        227,
+        164,
+        139,
+        85,
+        127,
+        115,
+        86,
+        119
+    };
+    
+    for(int i = 0; i < 256; i++) {
+        s[i] = i;
+    }
+    
+    //EDIT THESE TO MATCH YOUR KEY
+    short secretKey[3] = {0x00, 0x31, 0xff};
+    
+    unsigned j = 0;
+    for (int i = 0; i < 256; i++) {
+        j = (j + s[i] + secretKey[i % 3]) % 256;
+        short valOfSi = s[i];
+        short valOfSj = s[j];
+        s[i] = valOfSj;
+        s[j] = valOfSi;
+    }
+    
+    unsigned i = 0;
+    j = 0;
+    for(unsigned k = 0; k < 32; k++) {
+        i = (i + 1) % 256;
+        j = (j + s[i]) % 256;
+        
+        short s_i = s[i];
+        short s_j = s[j];
+        s[i] = s_j;
+        s[j] = s_i;
+        
+        short f = s[(s[i] + s[j]) % 256];
+        d[k] = f ^ rom[k];
+    }
+    
+    for(int i = 1; i <= 256; i++) {
+        printf("%02x ", s[i-1]);
+        if(!(i%0x10) && i) {
+            printf("\n");
+        }
+    }
+    
+    printf("\n");
+    
+    for(int k = 0; k < 32; k++) {
+        printf("%x ", d[k]);
+    }
+    
+    printf("\n");
+    
+    for(int k = 0; k < 32; k++) {
+        printf("%c", d[k]);
+    }
+
+    return 0;
+}
