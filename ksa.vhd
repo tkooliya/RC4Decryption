@@ -12,12 +12,12 @@ entity ksa is
         LEDG        : out std_logic_vector(7 downto 0);  -- green lights
         LEDR        : out std_logic_vector(17 downto 0);  -- red lights
 		  
-		  lcd_rw : out std_logic;
-		  lcd_en : out std_logic;
-		  lcd_rs : out std_logic;
-		  lcd_on : out std_logic;
-		  lcd_blon : out std_logic;
-		  lcd_data : out std_logic_vector(7 downto 0)
+        lcd_rw : out std_logic;
+        lcd_en : out std_logic;
+        lcd_rs : out std_logic;
+        lcd_on : out std_logic;
+        lcd_blon : out std_logic;
+        lcd_data : out std_logic_vector(7 downto 0)
  );
 end ksa;
 
@@ -189,6 +189,12 @@ end component;
     signal decrypt_write_j  : std_logic;
     signal decrypt_read_k   : std_logic;
     signal decrypt_write_k  : std_logic;
+
+
+    signal check            : std_logic;
+    signal check_done       : std_logic;
+    signal check_fail       : std_logic;
+    signal check_last_key   : std_logic;
 	 
 	 
     -- Display signals
@@ -197,16 +203,6 @@ end component;
     signal scaler : unsigned(25 downto 0);
     signal slowclk : std_logic;
     signal print_driver : std_logic;
-
-
-    signal check            : std_logic;
-    signal check_done       : std_logic;
-    signal check_fail       : std_logic;
-    signal check_last_key   : std_logic;
-	 
-    -- Display signals
-    signal print : std_logic;
-    signal print_done : std_logic;
 
     signal secret_key       : std_logic_vector(23 downto 0);
 
