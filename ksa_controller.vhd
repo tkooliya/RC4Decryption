@@ -91,11 +91,15 @@ begin
             when RESET =>
                 next_state <= FILL;
             
+
+
             when FILL =>
                 if(fill_done_i = '1') then
                     next_state <= SWAP_READ_I;
                 end if;
             
+
+
             when SWAP_READ_I =>
                 next_state <= SWAP_COMPUTE_J;
 
@@ -115,6 +119,8 @@ begin
                     next_state <= SWAP_READ_I;
                 end if;
 
+
+
             when DECRYPT_READ_I =>
                 next_state <= DECRYPT_READ_J;
 				
@@ -132,11 +138,13 @@ begin
 				
             when DECRYPT_WRITE_K =>
                 if(decrypt_done_i = '1') then
-                    next_state <= DONE;
+                    next_state <= CHECK;
                 else
                     next_state <= DECRYPT_READ_I;
                 end if;
 
+
+                
             when CHECK =>
                 if(check_fail_i = '1') then
                     if(check_last_key_i = '1') then
