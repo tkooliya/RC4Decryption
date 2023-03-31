@@ -77,9 +77,6 @@ end component;
 
             fill_done_i         : in  std_logic;
             fill_o              : out std_logic;
-				
-				print_done_i		  : in std_logic;
-				print_o				  : out std_logic;
             
             swap_done_i         : in  std_logic; 
             swap_read_i_o       : out std_logic;
@@ -94,7 +91,18 @@ end component;
             decrypt_read_k_o    : out std_logic;
             decrypt_write_k_o   : out std_logic;
             decrypt_write_i_o   : out std_logic;
-            decrypt_write_j_o   : out std_logic
+            decrypt_write_j_o   : out std_logic;
+
+            check_done_i        : in std_logic;
+            check_fail_i        : in std_logic;
+            check_last_key_i    : in std_logic;
+            check_o             : out std_logic;
+				
+            print_done_i		  : in std_logic;
+            print_o				  : out std_logic;
+
+            done_o              : out std_logic;
+            no_sol_o            : out std_logic
         );
 	end component;
 
@@ -104,13 +112,8 @@ end component;
             rst_i               : in std_logic;
 
             fill_i              : in std_logic;
-            fill_done_o         : out std_logic;
-				
-				print_i				  : in std_logic;
-				print_driver_i      : in std_logic;
-
-            secret_key_i        : in std_logic_vector(23 downto 0);
-            
+            fill_done_o         : out std_logic;      
+                    
             swap_read_i_i       : in std_logic;
             swap_compute_j_i    : in std_logic;
             swap_read_j_i       : in std_logic;
@@ -120,30 +123,40 @@ end component;
 
             decrypt_read_i      : in std_logic;
             decrypt_read_j      : in std_logic;
-            decrypt_read_k      : in std_logic;
-            decrypt_write_k     : in std_logic;
             decrypt_write_i     : in std_logic;
             decrypt_write_j     : in std_logic;
+            decrypt_read_k      : in std_logic;
+            decrypt_write_k     : in std_logic;
             decrypt_done_o      : out std_logic;
+
+            check_i             : in  std_logic;
+            check_done_o        : out std_logic;
+            check_fail_o        : out std_logic;
+            check_last_key_o    : out std_logic;
+				
+            print_i		        : in std_logic;
+            print_driver_i      : in std_logic;      
 
             wren_w_o            : out std_logic;
             address_w_o         : out std_logic_vector(7 downto 0);
             data_w_o            : out std_logic_vector(7 downto 0);
-            q_w_i	            : in std_logic_vector(7 downto 0);
+            q_w_i	            : in  std_logic_vector(7 downto 0);
 
             address_rom_o       : out std_logic_vector(4 downto 0);
-            q_rom_i             : in std_logic_vector(7 downto 0);
+            q_rom_i             : in  std_logic_vector(7 downto 0);
 
             wren_d_o            : out std_logic;
             address_d_o         : out std_logic_vector(4 downto 0);
             data_d_o            : out std_logic_vector(7 downto 0);
-            q_d_i	              : in std_logic_vector(7 downto 0)
+            q_d_i	            : in  std_logic_vector(7 downto 0);
+
+            secret_key_o        : out std_logic_vector(23 downto 0)
         );
 	end component;
 
 
     signal rst_active_1 : std_logic;
-	 signal clk          : std_logic;
+    signal clk          : std_logic;
 
     -- Memory signals
     signal wren_w       : std_logic;
@@ -162,8 +175,6 @@ end component;
     -- Controller signals
     signal fill_done        : std_logic;
     signal fill             : std_logic;
-
-    signal secret_key       : std_logic_vector(23 downto 0);
 	
     signal swap_done        : std_logic;
     signal swap_read_i      : std_logic;
@@ -189,26 +200,35 @@ end component;
 	 signal print_driver : std_logic;
 
 
+    signal check            : std_logic;
+    signal check_done       : std_logic;
+    signal check_fail       : std_logic;
+    signal check_last_key   : std_logic;
+
+    signal secret_key       : std_logic_vector(23 downto 0);
+
 begin
 	 
-	 clk <= CLOCK_50 when print = '0' else slowclk;
+    clk <= CLOCK_50 when print = '0' else slowclk;
     rst_active_1 <= not KEY(3);
 
-	 ic_lcd_driver0 : ic_lcd_driver
-		  port map(
-		  print_i			=> print,
-		  data_i 			=> q_d,
-		  print_done_o    => print_done,
-		  print_lcd_o     => print_driver,
+    LEDR <= secret_key(17 downto 0);
+
+    ic_lcd_driver0 : ic_lcd_driver
+        port map(
+        print_i			=> print,
+        data_i 			=> q_d,
+        print_done_o    => print_done,
+        print_lcd_o     => print_driver,
         lcd_en  		=> lcd_en,
-        lcd_data     => lcd_data,
+        lcd_data        => lcd_data,
         lcd_rs  		=> lcd_rs,
-        lcd_rw 		=> lcd_rw,
+        lcd_rw 		    => lcd_rw,
         lcd_on  		=> lcd_on,
         lcd_blon 		=> lcd_blon,
-        clk_i 		=> clk
-		  ); 
-		  
+        clk_i 		    => clk
+    );
+
     u0 : s_memory
         port map(
             address     => address_w,
@@ -258,7 +278,15 @@ begin
             decrypt_write_i_o   => decrypt_write_i,
             decrypt_write_j_o   => decrypt_write_j,
             decrypt_read_k_o    => decrypt_read_k,
-            decrypt_write_k_o   => decrypt_write_k
+            decrypt_write_k_o   => decrypt_write_k,
+
+            check_done_i        => check_done,
+            check_fail_i        => check_fail,
+            check_last_key_i    => check_last_key,
+            check_o             => check,
+
+            done_o              => LEDG(0),
+            no_sol_o            => LEDG(1)
         );
 
     datapath0 : ksa_datapath
@@ -268,11 +296,6 @@ begin
 
             fill_i              => fill,
             fill_done_o         => fill_done,
-				
-				print_i				  => print,
-				print_driver_i      => print_driver,
-
-            secret_key_i        => secret_key,
 
             swap_read_i_i       => swap_read_i,
             swap_compute_j_i    => swap_compute_j,
@@ -288,6 +311,14 @@ begin
             decrypt_read_k      => decrypt_read_k,
             decrypt_write_k     => decrypt_write_k,
             decrypt_done_o      => decrypt_done,
+
+            check_i             => check,
+            check_done_o        => check_done,
+            check_fail_o        => check_fail,
+            check_last_key_o    => check_last_key,
+				
+            print_i			    => print,
+            print_driver_i      => print_driver,
             
             wren_w_o            => wren_w,
             address_w_o         => address_w,
@@ -300,23 +331,20 @@ begin
             wren_d_o            => wren_d,
             address_d_o         => address_d,
             data_d_o            => data_d,
-            q_d_i	              => q_d
-        );
+            q_d_i	            => q_d,
 
-    secret_key <= "000000" & SW;
+            secret_key_o        => secret_key
+        );	 
 	 
+    process(CLOCK_50, rst_active_1) begin
+        if(rst_active_1 = '1') then
+            scaler <= to_unsigned(0, scaler'length);
+        elsif(rising_edge(CLOCK_50)) then
+            scaler <= scaler + 1;
+        end if;
+    end process;
 	 
-	 process(CLOCK_50, rst_active_1)
-	 
-	 begin
-	 if(rst_active_1 = '1') then
-		scaler <= to_unsigned(0, scaler'length);
-	 elsif(rising_edge(CLOCK_50)) then
-		scaler <= scaler + 1;
-	 end if;
-	 end process;
-	 
-	 slowclk <= scaler(25);
+    slowclk <= scaler(20);
 
 end rtl;
 

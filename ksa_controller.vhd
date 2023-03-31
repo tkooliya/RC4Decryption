@@ -10,9 +10,6 @@ entity ksa_controller is
         fill_done_i         : in  std_logic;
         fill_o              : out std_logic;
 		  
-		  print_done_i			 : in std_logic;
-		  print_o				 : out std_logic;
-		  
 		swap_done_i         : in  std_logic; 
 		swap_read_i_o       : out std_logic;
 		swap_compute_j_o    : out std_logic;
@@ -26,7 +23,18 @@ entity ksa_controller is
         decrypt_read_k_o    : out std_logic;
         decrypt_write_k_o   : out std_logic;
         decrypt_write_i_o   : out std_logic;
-        decrypt_write_j_o   : out std_logic
+        decrypt_write_j_o   : out std_logic;
+
+        check_done_i        : in std_logic;
+        check_fail_i        : in std_logic;
+        check_last_key_i    : in std_logic;
+        check_o             : out std_logic;
+		  
+        print_done_i	    : in std_logic;
+        print_o			    : out std_logic;
+
+        done_o              : out std_logic;
+        no_sol_o            : out std_logic
     );
 end entity;
 
@@ -35,6 +43,7 @@ architecture behaviour of ksa_controller is
     -- State signals
 	type state_t is (
         RESET, 
+
         FILL,
 
 		SWAP_READ_I,
@@ -49,9 +58,12 @@ architecture behaviour of ksa_controller is
         DECRYPT_WRITE_J,
         DECRYPT_READ_K,
         DECRYPT_WRITE_K,
-		  
-		  PRINT,
 		
+        CHECK,
+		  
+        PRINT,
+
+        NO_SOL,
         DONE
     );
 	signal curr_state : state_t;
@@ -74,7 +86,10 @@ begin
         fill_done_i,
         swap_done_i,
         decrypt_done_i,
-		  print_done_i
+        check_fail_i,
+        check_last_key_i,
+        check_done_i,
+		print_done_i
     ) begin
         next_state <= curr_state;
 
@@ -82,11 +97,15 @@ begin
             when RESET =>
                 next_state <= FILL;
             
+
+
             when FILL =>
                 if(fill_done_i = '1') then
                     next_state <= SWAP_READ_I;
                 end if;
             
+
+
             when SWAP_READ_I =>
                 next_state <= SWAP_COMPUTE_J;
 
@@ -106,6 +125,8 @@ begin
                     next_state <= SWAP_READ_I;
                 end if;
 
+
+                
             when DECRYPT_READ_I =>
                 next_state <= DECRYPT_READ_J;
 				
@@ -126,26 +147,36 @@ begin
                     next_state <= PRINT;
                 else
                     next_state <= DECRYPT_READ_I;
+                end if;	
+				
+
+            when CHECK =>
+                if(check_fail_i = '1') then
+                    if(check_last_key_i = '1') then
+                        next_state <= NO_SOL;
+                    else
+                        next_state <= FILL;
+                    end if;
+                elsif(check_done_i = '1') then
+                    next_state <= PRINT;
                 end if;
 					 
-				when PRINT =>
-					 if(print_done_i = '1') then
-							next_state <= done;
-					 else
-							next_state <= PRINT;
-					 end if;		
-				
+            when PRINT =>
+                if(print_done_i = '1') then
+                    next_state <= DONE;
+                end if;	
+
             when others =>
         end case;
     end process;
 
     fill_o              <= '1' when (curr_state = FILL) else '0';
 
-	 swap_read_i_o       <= '1' when (curr_state = SWAP_READ_I) else '0';
-	 swap_compute_j_o    <= '1' when (curr_state = SWAP_COMPUTE_J) else '0';
+    swap_read_i_o       <= '1' when (curr_state = SWAP_READ_I) else '0';
+    swap_compute_j_o    <= '1' when (c  urr_state = SWAP_COMPUTE_J) else '0';
     swap_read_j_o       <= '1' when (curr_state = SWAP_READ_J) else '0';
-	 swap_write_i_o      <= '1' when (curr_state = SWAP_WRITE_I) else '0';
-	 swap_write_j_o      <= '1' when (curr_state = SWAP_WRITE_J) else '0';
+    swap_write_i_o      <= '1' when (curr_state = SWAP_WRITE_I) else '0';
+    swap_write_j_o      <= '1' when (curr_state = SWAP_WRITE_J) else '0';
 
     decrypt_read_i_o    <= '1' when (curr_state = DECRYPT_READ_I) else '0';
     decrypt_read_j_o    <= '1' when (curr_state = DECRYPT_READ_J) else '0';
@@ -153,6 +184,12 @@ begin
     decrypt_write_j_o   <= '1' when (curr_state = DECRYPT_WRITE_J) else '0';
     decrypt_read_k_o    <= '1' when (curr_state = DECRYPT_READ_K) else '0';
     decrypt_write_k_o   <= '1' when (curr_state = DECRYPT_WRITE_K) else '0';
-	 print_o					<= '1' when (curr_state = PRINT) else '0';
+
+    check_o             <= '1' when (curr_state = CHECK) else '0';
+
+    print_o			    <= '1' when (curr_state = PRINT) else '0';
+
+    done_o              <= '1' when (curr_state = DONE) else '0';
+    no_sol_o            <= '1' when (curr_state = NO_SOL) else '0';
 
 end architecture;
