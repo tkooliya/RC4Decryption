@@ -10,13 +10,36 @@ entity ksa is
         KEY         : in  std_logic_vector(3 downto 0);  -- push button switches
         SW          : in  std_logic_vector(17 downto 0);  -- slider switches
         LEDG        : out std_logic_vector(7 downto 0);  -- green lights
-        LEDR        : out std_logic_vector(17 downto 0)  -- red lights
-    );
+        LEDR        : out std_logic_vector(17 downto 0);  -- red lights
+		  
+		  lcd_rw : out std_logic;
+		  lcd_en : out std_logic;
+		  lcd_rs : out std_logic;
+		  lcd_on : out std_logic;
+		  lcd_blon : out std_logic;
+		  lcd_data : out std_logic_vector(7 downto 0)
+ );
 end ksa;
 
 -- Architecture part of the description
 
 architecture rtl of ksa is
+
+component ic_lcd_driver is
+    port(
+		  print_i:	  in std_logic;
+		  data_i:     in std_logic_vector(7 downto 0);
+		  print_done_o : out std_logic;
+        lcd_en:     out std_logic;
+        lcd_data:   out std_logic_vector(7 downto 0);
+        lcd_rs:     out std_logic;
+        lcd_rw:     out std_logic;
+        lcd_on:     out std_logic;
+        lcd_blon:   out std_logic;
+
+        CLOCK_50:   in std_logic
+    );
+end component;
 
     component s_memory is
 	    port(
@@ -53,6 +76,9 @@ architecture rtl of ksa is
 
             fill_done_i         : in  std_logic;
             fill_o              : out std_logic;
+				
+				print_done_i		  : in std_logic;
+				print_o				  : out std_logic;
             
             swap_done_i         : in  std_logic; 
             swap_read_i_o       : out std_logic;
@@ -78,6 +104,8 @@ architecture rtl of ksa is
 
             fill_i              : in std_logic;
             fill_done_o         : out std_logic;
+				
+				print_i				  : in std_logic;
 
             secret_key_i        : in std_logic_vector(23 downto 0);
             
@@ -107,7 +135,7 @@ architecture rtl of ksa is
             wren_d_o            : out std_logic;
             address_d_o         : out std_logic_vector(4 downto 0);
             data_d_o            : out std_logic_vector(7 downto 0);
-            q_d_i	            : in std_logic_vector(7 downto 0)
+            q_d_i	              : in std_logic_vector(7 downto 0)
         );
 	end component;
 
@@ -136,10 +164,10 @@ architecture rtl of ksa is
 	
     signal swap_done        : std_logic;
     signal swap_read_i      : std_logic;
-	signal swap_compute_j   : std_logic;
+	 signal swap_compute_j   : std_logic;
     signal swap_read_j      : std_logic;
-	signal swap_write_i     : std_logic;
-	signal swap_write_j     : std_logic;
+	 signal swap_write_i     : std_logic;
+	 signal swap_write_j     : std_logic;
 
     signal decrypt_done     : std_logic;
     signal decrypt_read_i   : std_logic;
@@ -148,11 +176,31 @@ architecture rtl of ksa is
     signal decrypt_write_j  : std_logic;
     signal decrypt_read_k   : std_logic;
     signal decrypt_write_k  : std_logic;
+	 
+	 
+	 -- Display signals
+	 signal print : std_logic;
+	 signal print_done : std_logic;
+
 
 begin
 
     rst_active_1 <= not KEY(3);
 
+	 ic_lcd_driver0 : ic_lcd_driver
+		  port map(
+		  print_i			=> print,
+		  data_i 			=> q_d,
+		  print_done_o    => print_done,
+        lcd_en  		=> lcd_en,
+        lcd_data     => lcd_data,
+        lcd_rs  		=> lcd_rs,
+        lcd_rw 		=> lcd_rw,
+        lcd_on  		=> lcd_on,
+        lcd_blon 		=> lcd_blon,
+        CLOCK_50 		=> CLOCK_50
+		  );
+		  
     u0 : s_memory
         port map(
             address     => address_w,
@@ -185,6 +233,9 @@ begin
 
             fill_done_i         => fill_done,
             fill_o              => fill,
+				
+				print_done_i		  => print_done,
+				print_o				  => print,
 
             swap_done_i         => swap_done, 
             swap_read_i_o       => swap_read_i,
@@ -209,6 +260,8 @@ begin
 
             fill_i              => fill,
             fill_done_o         => fill_done,
+				
+				print_i				  => print,
 
             secret_key_i        => secret_key,
 
@@ -230,7 +283,7 @@ begin
             wren_w_o            => wren_w,
             address_w_o         => address_w,
             data_w_o            => data_w,
-            q_w_i	            => q_w,
+            q_w_i	              => q_w,
 
             address_rom_o       => address_rom,
             q_rom_i             => q_rom,
@@ -238,7 +291,7 @@ begin
             wren_d_o            => wren_d,
             address_d_o         => address_d,
             data_d_o            => data_d,
-            q_d_i	            => q_d
+            q_d_i	              => q_d
         );
 
     secret_key <= "000000" & SW;

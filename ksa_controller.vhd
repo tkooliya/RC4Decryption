@@ -10,6 +10,9 @@ entity ksa_controller is
         fill_done_i         : in  std_logic;
         fill_o              : out std_logic;
 		  
+		  print_done_i			 : in std_logic;
+		  print_o				 : out std_logic;
+		  
 		swap_done_i         : in  std_logic; 
 		swap_read_i_o       : out std_logic;
 		swap_compute_j_o    : out std_logic;
@@ -46,6 +49,8 @@ architecture behaviour of ksa_controller is
         DECRYPT_WRITE_J,
         DECRYPT_READ_K,
         DECRYPT_WRITE_K,
+		  
+		  PRINT,
 		
         DONE
     );
@@ -68,7 +73,8 @@ begin
         curr_state,
         fill_done_i,
         swap_done_i,
-        decrypt_done_i
+        decrypt_done_i,
+		  print_done_i
     ) begin
         next_state <= curr_state;
 
@@ -117,10 +123,17 @@ begin
 				
             when DECRYPT_WRITE_K =>
                 if(decrypt_done_i = '1') then
-                    next_state <= DONE;
+                    next_state <= PRINT;
                 else
                     next_state <= DECRYPT_READ_I;
                 end if;
+					 
+				when PRINT =>
+					 if(print_done_i = '1') then
+							next_state <= done;
+					 else
+							next_state <= PRINT;
+					 end if;		
 				
             when others =>
         end case;
@@ -128,11 +141,11 @@ begin
 
     fill_o              <= '1' when (curr_state = FILL) else '0';
 
-	swap_read_i_o       <= '1' when (curr_state = SWAP_READ_I) else '0';
-	swap_compute_j_o    <= '1' when (curr_state = SWAP_COMPUTE_J) else '0';
+	 swap_read_i_o       <= '1' when (curr_state = SWAP_READ_I) else '0';
+	 swap_compute_j_o    <= '1' when (curr_state = SWAP_COMPUTE_J) else '0';
     swap_read_j_o       <= '1' when (curr_state = SWAP_READ_J) else '0';
-	swap_write_i_o      <= '1' when (curr_state = SWAP_WRITE_I) else '0';
-	swap_write_j_o      <= '1' when (curr_state = SWAP_WRITE_J) else '0';
+	 swap_write_i_o      <= '1' when (curr_state = SWAP_WRITE_I) else '0';
+	 swap_write_j_o      <= '1' when (curr_state = SWAP_WRITE_J) else '0';
 
     decrypt_read_i_o    <= '1' when (curr_state = DECRYPT_READ_I) else '0';
     decrypt_read_j_o    <= '1' when (curr_state = DECRYPT_READ_J) else '0';
@@ -140,5 +153,6 @@ begin
     decrypt_write_j_o   <= '1' when (curr_state = DECRYPT_WRITE_J) else '0';
     decrypt_read_k_o    <= '1' when (curr_state = DECRYPT_READ_K) else '0';
     decrypt_write_k_o   <= '1' when (curr_state = DECRYPT_WRITE_K) else '0';
+	 print_o					<= '1' when (curr_state = PRINT) else '0';
 
 end architecture;

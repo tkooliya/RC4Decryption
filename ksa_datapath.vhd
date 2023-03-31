@@ -6,9 +6,12 @@ entity ksa_datapath is
     port(
         clk_i               : in std_logic;
         rst_i               : in std_logic;
+		  
 
         fill_i              : in std_logic;
         fill_done_o         : out std_logic;
+		  
+		  print_i				 : in std_logic;
         
         secret_key_i        : in std_logic_vector(23 downto 0);
 		  
@@ -30,7 +33,7 @@ entity ksa_datapath is
         wren_w_o            : out std_logic;
         address_w_o         : out std_logic_vector(7 downto 0);
         data_w_o            : out std_logic_vector(7 downto 0);
-		q_w_i	            : in std_logic_vector (7 downto 0);
+		  q_w_i	            : in std_logic_vector (7 downto 0);
 
         address_rom_o       : out std_logic_vector(4 downto 0);
         q_rom_i             : in std_logic_vector(7 downto 0);
@@ -65,6 +68,8 @@ architecture behaviour of ksa_datapath is
     signal decrypt_next_j   : unsigned(7 downto 0);
 
     constant MESSAGE_LENGTH : integer := 32;
+	 
+	 signal print_address_r  : unsigned(4 downto 0);
     
 begin
 
@@ -139,6 +144,18 @@ begin
             end if;
         end if;
     end process;
+	 
+	 
+	 -- Printing state logic
+	 process(clk_i, rst_i) begin
+			if(rst_i = '1') then
+				print_address_r <= to_unsigned(0, 5);
+			elsif(rising_edge(clk_i)) then
+				if(print_address_r < 32 AND print_i = '1') then
+					print_address_r <= print_address_r + 1;
+				end if;
+			end if;
+	end process;		
 
     decrypt_done <= '1' when (decrypt_k_r = 31) else '0';
     decrypt_done_o <= decrypt_done;
@@ -169,7 +186,10 @@ begin
         decrypt_k_r,
         decrypt_s_i_r,
         decrypt_s_j_r,
-        q_rom_i
+        q_rom_i,
+		  print_i,
+		  print_address_r
+		  
     ) begin
         wren_w_o        <= '0';
         address_w_o     <= "00000000";
@@ -226,6 +246,11 @@ begin
             wren_d_o        <= '1';
             address_d_o     <= std_logic_vector(decrypt_k_r);
             data_d_o        <= std_logic_vector(q_w_i) xor std_logic_vector(q_rom_i);
+				
+		  elsif(print_i = '1') then
+				wren_d_o        <= '0';
+            address_d_o     <= std_logic_vector(print_address_r);
+				
 
         end if;
     end process;
