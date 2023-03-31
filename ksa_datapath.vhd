@@ -21,10 +21,10 @@ entity ksa_datapath is
 
         decrypt_read_i      : in std_logic;
         decrypt_read_j      : in std_logic;
-        decrypt_read_k      : in std_logic;
-        decrypt_write_k     : in std_logic;
         decrypt_write_i     : in std_logic;
         decrypt_write_j     : in std_logic;
+        decrypt_read_k      : in std_logic;
+        decrypt_write_k     : in std_logic;
         decrypt_done_o      : out std_logic;
 
         wren_w_o            : out std_logic;
@@ -130,11 +130,12 @@ begin
                 decrypt_s_i_r <= unsigned(q_w_i);
                 decrypt_j_r <= decrypt_next_j;
 
-            elsif(decrypt_read_k = '1') then
+            elsif(decrypt_write_i = '1') then
                 decrypt_s_j_r <= unsigned(q_w_i);
 
-            elsif(decrypt_write_j = '1') then
+            elsif(decrypt_write_k = '1') then
                 decrypt_k_r <= decrypt_k_r + to_unsigned(1, decrypt_k_r'length);
+
             end if;
         end if;
     end process;
@@ -207,24 +208,24 @@ begin
         elsif(decrypt_read_j = '1') then
             address_w_o     <= std_logic_vector(decrypt_next_j);
 
+        elsif(decrypt_write_i = '1') then
+            wren_w_o        <= '1';
+            address_w_o     <= std_logic_vector(decrypt_i_r);
+            data_w_o        <= std_logic_vector(q_w_i);
+
+        elsif(decrypt_write_j = '1') then
+            wren_w_o        <= '1';
+            address_w_o     <= std_logic_vector(decrypt_j_r);
+            data_w_o        <= std_logic_vector(decrypt_s_i_r);
+
         elsif(decrypt_read_k = '1') then
-            address_w_o     <= std_logic_vector(decrypt_s_i_r + unsigned(q_w_i));
+            address_w_o     <= std_logic_vector(decrypt_s_i_r + decrypt_s_j_r);
             address_rom_o   <= std_logic_vector(decrypt_k_r);
 
         elsif(decrypt_write_k = '1') then
             wren_d_o        <= '1';
             address_d_o     <= std_logic_vector(decrypt_k_r);
             data_d_o        <= std_logic_vector(q_w_i) xor std_logic_vector(q_rom_i);
-
-        elsif(decrypt_write_i = '1') then
-            wren_w_o        <= '1';
-            address_w_o     <= std_logic_vector(decrypt_i_r);
-            data_w_o        <= std_logic_vector(decrypt_s_j_r);
-
-        elsif(decrypt_write_j = '1') then
-            wren_w_o        <= '1';
-            address_w_o     <= std_logic_vector(decrypt_j_r);
-            data_w_o        <= std_logic_vector(decrypt_s_i_r);
 
         end if;
     end process;

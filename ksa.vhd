@@ -144,10 +144,10 @@ architecture rtl of ksa is
     signal decrypt_done     : std_logic;
     signal decrypt_read_i   : std_logic;
     signal decrypt_read_j   : std_logic;
-    signal decrypt_read_k   : std_logic;
-    signal decrypt_write_k  : std_logic;
     signal decrypt_write_i  : std_logic;
     signal decrypt_write_j  : std_logic;
+    signal decrypt_read_k   : std_logic;
+    signal decrypt_write_k  : std_logic;
 
 begin
 
@@ -196,10 +196,10 @@ begin
             decrypt_done_i      => decrypt_done,
             decrypt_read_i_o    => decrypt_read_i,
             decrypt_read_j_o    => decrypt_read_j,
-            decrypt_read_k_o    => decrypt_read_k,
-            decrypt_write_k_o   => decrypt_write_k,
             decrypt_write_i_o   => decrypt_write_i,
-            decrypt_write_j_o   => decrypt_write_j
+            decrypt_write_j_o   => decrypt_write_j,
+            decrypt_read_k_o    => decrypt_read_k,
+            decrypt_write_k_o   => decrypt_write_k
         );
 
     datapath0 : ksa_datapath
@@ -221,10 +221,10 @@ begin
 
             decrypt_read_i      => decrypt_read_i,
             decrypt_read_j      => decrypt_read_j,
-            decrypt_read_k      => decrypt_read_k,
-            decrypt_write_k     => decrypt_write_k,
             decrypt_write_i     => decrypt_write_i,
             decrypt_write_j     => decrypt_write_j,
+            decrypt_read_k      => decrypt_read_k,
+            decrypt_write_k     => decrypt_write_k,
             decrypt_done_o      => decrypt_done,
             
             wren_w_o            => wren_w,

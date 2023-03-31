@@ -42,10 +42,10 @@ architecture behaviour of ksa_controller is
 
         DECRYPT_READ_I,
         DECRYPT_READ_J,
-        DECRYPT_READ_K,
-        DECRYPT_WRITE_K,
         DECRYPT_WRITE_I,
         DECRYPT_WRITE_J,
+        DECRYPT_READ_K,
+        DECRYPT_WRITE_K,
 		
         DONE
     );
@@ -104,18 +104,18 @@ begin
                 next_state <= DECRYPT_READ_J;
 				
             when DECRYPT_READ_J =>
-                next_state <= DECRYPT_READ_K;
-				
-            when DECRYPT_READ_K =>
-                next_state <= DECRYPT_WRITE_K;
-				
-            when DECRYPT_WRITE_K =>
                 next_state <= DECRYPT_WRITE_I;
 				
             when DECRYPT_WRITE_I =>
                 next_state <= DECRYPT_WRITE_J;
 				
             when DECRYPT_WRITE_J =>
+                next_state <= DECRYPT_READ_K;
+				
+            when DECRYPT_READ_K =>
+                next_state <= DECRYPT_WRITE_K;
+				
+            when DECRYPT_WRITE_K =>
                 if(decrypt_done_i = '1') then
                     next_state <= DONE;
                 else
@@ -136,9 +136,9 @@ begin
 
     decrypt_read_i_o    <= '1' when (curr_state = DECRYPT_READ_I) else '0';
     decrypt_read_j_o    <= '1' when (curr_state = DECRYPT_READ_J) else '0';
-    decrypt_read_k_o    <= '1' when (curr_state = DECRYPT_READ_K) else '0';
-    decrypt_write_k_o   <= '1' when (curr_state = DECRYPT_WRITE_K) else '0';
     decrypt_write_i_o   <= '1' when (curr_state = DECRYPT_WRITE_I) else '0';
     decrypt_write_j_o   <= '1' when (curr_state = DECRYPT_WRITE_J) else '0';
+    decrypt_read_k_o    <= '1' when (curr_state = DECRYPT_READ_K) else '0';
+    decrypt_write_k_o   <= '1' when (curr_state = DECRYPT_WRITE_K) else '0';
 
 end architecture;
