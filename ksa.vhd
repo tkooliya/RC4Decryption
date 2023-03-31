@@ -28,30 +28,58 @@ architecture rtl of ksa is
         );
     end component;
 
+    component m_rom is
+        port(
+            address     : in std_logic_vector(4 downto 0);
+            clock       : in std_logic;
+            q           : out std_logic_vector(7 downto 0)
+        );
+    end component;
+
+    component d_memory is
+        port(
+            address     : in std_logic_vector(4 downto 0);
+            clock       : in std_logic;
+            data        : in std_logic_vector(7 downto 0);
+            wren        : in std_logic;
+            q           : out std_logic_vector(7 downto 0)
+        );
+    end component;
+
 	component ksa_controller is
 		port(
-            clk_i       : in  std_logic;
-            rst_i       : in  std_logic;
-            fill_done_i : in  std_logic;
-            fill_o      : out std_logic;
+            clk_i               : in  std_logic;
+            rst_i               : in  std_logic;
+
+            fill_done_i         : in  std_logic;
+            fill_o              : out std_logic;
             
-            swap_done_i : in  std_logic; 
-            swap_read_i_o : out std_logic;
-            swap_compute_j_o  : out std_logic;
-            swap_read_j_o   : out std_logic;
-            swap_write_i_o  : out std_logic;
-            swap_write_j_o  : out std_logic
-		);
+            swap_done_i         : in  std_logic; 
+            swap_read_i_o       : out std_logic;
+            swap_compute_j_o    : out std_logic;
+            swap_read_j_o       : out std_logic;
+            swap_write_i_o      : out std_logic;
+            swap_write_j_o      : out std_logic;
+
+            decrypt_done_i      : in  std_logic;
+            decrypt_read_i_o    : out std_logic;
+            decrypt_read_j_o    : out std_logic;
+            decrypt_read_k_o    : out std_logic;
+            decrypt_write_k_o   : out std_logic;
+            decrypt_write_i_o   : out std_logic;
+            decrypt_write_j_o   : out std_logic
+        );
 	end component;
 
 	component ksa_datapath is
 		port(
             clk_i               : in std_logic;
             rst_i               : in std_logic;
-            q_i			        : in std_logic_vector (7 downto 0);
 
             fill_i              : in std_logic;
             fill_done_o         : out std_logic;
+
+            secret_key_i        : in std_logic_vector(23 downto 0);
             
             swap_read_i_i       : in std_logic;
             swap_compute_j_i    : in std_logic;
@@ -60,35 +88,66 @@ architecture rtl of ksa is
             swap_write_j_i      : in std_logic;
             swap_done_o         : out std_logic;
 
-            secret_key_i        : in std_logic_vector(23 downto 0);
+            decrypt_read_i      : in std_logic;
+            decrypt_read_j      : in std_logic;
+            decrypt_read_k      : in std_logic;
+            decrypt_write_k     : in std_logic;
+            decrypt_write_i     : in std_logic;
+            decrypt_write_j     : in std_logic;
+            decrypt_done_o      : out std_logic;
 
-            wren_o              : out std_logic;
-            address_o           : out std_logic_vector(7 downto 0);
-            data_o              : out std_logic_vector(7 downto 0)
+            wren_w_o            : out std_logic;
+            address_w_o         : out std_logic_vector(7 downto 0);
+            data_w_o            : out std_logic_vector(7 downto 0);
+            q_w_i	            : in std_logic_vector(7 downto 0);
+
+            address_rom_o       : out std_logic_vector(4 downto 0);
+            q_rom_i             : in std_logic_vector(7 downto 0);
+
+            wren_d_o            : out std_logic;
+            address_d_o         : out std_logic_vector(4 downto 0);
+            data_d_o            : out std_logic_vector(7 downto 0);
+            q_d_i	            : in std_logic_vector(7 downto 0)
         );
 	end component;
 
 
     signal rst_active_1 : std_logic;
 
-    -- RAM signals
-    signal address  : std_logic_vector (7 downto 0);
-    signal data     : std_logic_vector (7 downto 0);
-    signal wren     : std_logic;
-    signal q        : std_logic_vector (7 downto 0);
+    -- Memory signals
+    signal wren_w       : std_logic;
+    signal address_w    : std_logic_vector (7 downto 0);
+    signal data_w       : std_logic_vector (7 downto 0);
+    signal q_w          : std_logic_vector (7 downto 0);
+
+    signal address_rom  : std_logic_vector(4 downto 0);
+    signal q_rom        : std_logic_vector(7 downto 0);
+
+    signal wren_d       : std_logic;
+    signal address_d    : std_logic_vector (4 downto 0);
+    signal data_d       : std_logic_vector (7 downto 0);
+    signal q_d          : std_logic_vector (7 downto 0);
 
     -- Controller signals
-    signal fill_done : std_logic;
-    signal fill : std_logic;
-	
-    signal swap_done : std_logic;
-    signal swap_read_i: std_logic;
-	signal swap_compute_j : std_logic;
-    signal swap_read_j  : std_logic;
-	signal swap_write_i : std_logic;
-	signal swap_write_j : std_logic;
+    signal fill_done        : std_logic;
+    signal fill             : std_logic;
 
-    signal secret_key : std_logic_vector(23 downto 0);
+    signal secret_key       : std_logic_vector(23 downto 0);
+	
+    signal swap_done        : std_logic;
+    signal swap_read_i      : std_logic;
+	signal swap_compute_j   : std_logic;
+    signal swap_read_j      : std_logic;
+	signal swap_write_i     : std_logic;
+	signal swap_write_j     : std_logic;
+
+    signal decrypt_done     : std_logic;
+    signal decrypt_read_i   : std_logic;
+    signal decrypt_read_j   : std_logic;
+    signal decrypt_write_i  : std_logic;
+    signal decrypt_write_j  : std_logic;
+    signal decrypt_read_k   : std_logic;
+    signal decrypt_write_k  : std_logic;
 
 begin
 
@@ -96,44 +155,90 @@ begin
 
     u0 : s_memory
         port map(
-            address,
-            CLOCK_50,
-            data,
-            wren,
-            q
+            address     => address_w,
+            clock       => CLOCK_50,
+            data        => data_w,
+            wren        => wren_w,
+            q           => q_w
+        );
+
+    m_rom0 : m_rom
+        port map(
+            address     => address_rom,
+            clock       => CLOCK_50,
+            q           => q_rom
+        );
+
+    d_mem0 : d_memory
+        port map(
+            address     => address_d,
+            clock       => CLOCK_50,
+            data        => data_d,
+            wren        => wren_d,
+            q           => q_d
         );
 
     controller0 : ksa_controller
         port map(
             clk_i               => CLOCK_50,
             rst_i               => rst_active_1,
+
             fill_done_i         => fill_done,
             fill_o              => fill,
+
             swap_done_i         => swap_done, 
             swap_read_i_o       => swap_read_i,
             swap_compute_j_o    => swap_compute_j,
             swap_read_j_o       => swap_read_j,
             swap_write_i_o      => swap_write_i,
-            swap_write_j_o      => swap_write_j
+            swap_write_j_o      => swap_write_j,
+
+            decrypt_done_i      => decrypt_done,
+            decrypt_read_i_o    => decrypt_read_i,
+            decrypt_read_j_o    => decrypt_read_j,
+            decrypt_write_i_o   => decrypt_write_i,
+            decrypt_write_j_o   => decrypt_write_j,
+            decrypt_read_k_o    => decrypt_read_k,
+            decrypt_write_k_o   => decrypt_write_k
         );
 
     datapath0 : ksa_datapath
         port map(
             clk_i               => CLOCK_50,
             rst_i               => rst_active_1,
-            q_i 				=> q,
+
             fill_i              => fill,
             fill_done_o         => fill_done,
+
+            secret_key_i        => secret_key,
+
             swap_read_i_i       => swap_read_i,
             swap_compute_j_i    => swap_compute_j,
             swap_read_j_i       => swap_read_j,
             swap_write_i_i      => swap_write_i,
             swap_write_j_i      => swap_write_j,
-            secret_key_i        => secret_key,
             swap_done_o         => swap_done,
-            wren_o              => wren,
-            address_o           => address,
-            data_o              => data
+
+            decrypt_read_i      => decrypt_read_i,
+            decrypt_read_j      => decrypt_read_j,
+            decrypt_write_i     => decrypt_write_i,
+            decrypt_write_j     => decrypt_write_j,
+            decrypt_read_k      => decrypt_read_k,
+            decrypt_write_k     => decrypt_write_k,
+            decrypt_done_o      => decrypt_done,
+            
+            wren_w_o            => wren_w,
+            address_w_o         => address_w,
+            data_w_o            => data_w,
+            q_w_i	            => q_w,
+
+            address_rom_o       => address_rom,
+            q_rom_i             => q_rom,
+
+            wren_d_o            => wren_d,
+            address_d_o         => address_d,
+            data_d_o            => data_d,
+            q_d_i	            => q_d
         );
 
     secret_key <= "000000" & SW;
