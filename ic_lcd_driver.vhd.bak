@@ -7,7 +7,6 @@ entity ic_lcd_driver is
 		  print_i:	  in std_logic;
 		  data_i:     in std_logic_vector(7 downto 0);
 		  print_done_o : out std_logic;
-		  print_lcd_o  : out std_logic;
 		--  clear_done_o will need to add to begin reading address since it begins during the INIT state of LCD
         lcd_en:     out std_logic;
         lcd_data:   out std_logic_vector(7 downto 0);
@@ -16,7 +15,7 @@ entity ic_lcd_driver is
         lcd_on:     out std_logic;
         lcd_blon:   out std_logic;
 
-        clk_i:   in std_logic
+        CLOCK_50:   in std_logic
     );
 end entity;
 
@@ -97,7 +96,7 @@ begin
 
 
     -- LCD Port logic
-    lcd_en      <= clk_i;
+    lcd_en      <= CLOCK_50;
     lcd_rw      <= '0';
     lcd_on      <= '1';
     lcd_blon    <= '1';
@@ -106,13 +105,12 @@ begin
                     data_i              when curr_macro_state = PRINT else -- need to change
                     lcd_new_line_data   when curr_macro_state = NEW_LINE else
 						  "00000000";
-	 print_lcd_o <= '1' when curr_macro_state = PRINT else '0';
                 
 
 
     -- Macro state control
-    process(clk_i) begin
-        if(rising_edge(clk_i)) then
+    process(CLOCK_50) begin
+        if(rising_edge(CLOCK_50)) then
             curr_macro_state <= next_macro_state;
         end if;
     end process;
@@ -160,8 +158,8 @@ begin
 
 
     -- INIT state control
-    process(clk_i) begin
-        if(rising_edge(clk_i)) then
+    process(CLOCK_50) begin
+        if(rising_edge(CLOCK_50)) then
             init_instr_idx <= next_init_instr_idx;
         end if;
     end process;
@@ -176,8 +174,8 @@ begin
 
 
     -- PRINT state control
-    process(clk_i) begin
-        if(rising_edge(clk_i)) then
+    process(CLOCK_50) begin
+        if(rising_edge(CLOCK_50)) then
             cursor_y <= next_cursor_y;
             cursor_x <= next_cursor_x;
         end if;

@@ -30,7 +30,6 @@ component ic_lcd_driver is
 		  print_i:	  in std_logic;
 		  data_i:     in std_logic_vector(7 downto 0);
 		  print_done_o : out std_logic;
-		  print_lcd_o  : out std_logic;
         lcd_en:     out std_logic;
         lcd_data:   out std_logic_vector(7 downto 0);
         lcd_rs:     out std_logic;
@@ -38,7 +37,7 @@ component ic_lcd_driver is
         lcd_on:     out std_logic;
         lcd_blon:   out std_logic;
 
-        clk_i:   in std_logic
+        CLOCK_50:   in std_logic
     );
 end component;
 
@@ -107,7 +106,6 @@ end component;
             fill_done_o         : out std_logic;
 				
 				print_i				  : in std_logic;
-				print_driver_i      : in std_logic;
 
             secret_key_i        : in std_logic_vector(23 downto 0);
             
@@ -143,7 +141,6 @@ end component;
 
 
     signal rst_active_1 : std_logic;
-	 signal clk          : std_logic;
 
     -- Memory signals
     signal wren_w       : std_logic;
@@ -184,14 +181,10 @@ end component;
 	 -- Display signals
 	 signal print : std_logic;
 	 signal print_done : std_logic;
-	 signal scaler : unsigned(25 downto 0);
-	 signal slowclk : std_logic;
-	 signal print_driver : std_logic;
 
 
 begin
-	 
-	 clk <= CLOCK_50 when print = '0' else slowclk;
+
     rst_active_1 <= not KEY(3);
 
 	 ic_lcd_driver0 : ic_lcd_driver
@@ -199,20 +192,19 @@ begin
 		  print_i			=> print,
 		  data_i 			=> q_d,
 		  print_done_o    => print_done,
-		  print_lcd_o     => print_driver,
         lcd_en  		=> lcd_en,
         lcd_data     => lcd_data,
         lcd_rs  		=> lcd_rs,
         lcd_rw 		=> lcd_rw,
         lcd_on  		=> lcd_on,
         lcd_blon 		=> lcd_blon,
-        clk_i 		=> clk
-		  ); 
+        CLOCK_50 		=> CLOCK_50
+		  );
 		  
     u0 : s_memory
         port map(
             address     => address_w,
-            clock       => clk,
+            clock       => CLOCK_50,
             data        => data_w,
             wren        => wren_w,
             q           => q_w
@@ -221,14 +213,14 @@ begin
     m_rom0 : m_rom
         port map(
             address     => address_rom,
-            clock       => clk,
+            clock       => CLOCK_50,
             q           => q_rom
         );
 
     d_mem0 : d_memory
         port map(
             address     => address_d,
-            clock       => clk,
+            clock       => CLOCK_50,
             data        => data_d,
             wren        => wren_d,
             q           => q_d
@@ -236,7 +228,7 @@ begin
 
     controller0 : ksa_controller
         port map(
-            clk_i               => clk,
+            clk_i               => CLOCK_50,
             rst_i               => rst_active_1,
 
             fill_done_i         => fill_done,
@@ -263,14 +255,13 @@ begin
 
     datapath0 : ksa_datapath
         port map(
-            clk_i               => clk,
+            clk_i               => CLOCK_50,
             rst_i               => rst_active_1,
 
             fill_i              => fill,
             fill_done_o         => fill_done,
 				
 				print_i				  => print,
-				print_driver_i      => print_driver,
 
             secret_key_i        => secret_key,
 
@@ -304,15 +295,6 @@ begin
         );
 
     secret_key <= "000000" & SW;
-	 
-	 
-	 process(CLOCK_50)
-	 begin
-	 slowclk <= scaler(25);
-	 if(rising_edge(CLOCK_50)) then
-		scaler <= scaler + 1;
-	 end if;
-	 end process;
 
 end rtl;
 

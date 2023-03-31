@@ -12,7 +12,6 @@ entity ksa_datapath is
         fill_done_o         : out std_logic;
 		  
 		  print_i				 : in std_logic;
-		  print_driver_i      : in std_logic;
         
         secret_key_i        : in std_logic_vector(23 downto 0);
 		  
@@ -152,7 +151,7 @@ begin
 			if(rst_i = '1') then
 				print_address_r <= to_unsigned(0, 5);
 			elsif(rising_edge(clk_i)) then
-				if(print_address_r < 32 AND print_driver_i = '1') then
+				if(print_address_r < 32 AND print_i = '1') then
 					print_address_r <= print_address_r + 1;
 				end if;
 			end if;
@@ -189,8 +188,7 @@ begin
         decrypt_s_j_r,
         q_rom_i,
 		  print_i,
-		  print_address_r,
-		  print_driver_i
+		  print_address_r
 		  
     ) begin
         wren_w_o        <= '0';
