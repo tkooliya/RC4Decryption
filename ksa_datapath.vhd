@@ -62,7 +62,7 @@ architecture behaviour of ksa_datapath is
     signal swap_temp_r      : unsigned(7 downto 0);
     signal swap_done        : std_logic;
     signal swap_next_j      : unsigned(7 downto 0);
-    signal secret_key_byte_index   : integer;
+    signal secret_key_byte_index   : integer range 0 to 3;
 
     -- Decrypt State signals
     signal decrypt_i_r      : unsigned(7 downto 0);
@@ -105,6 +105,8 @@ begin
     end process;
 
     fill_done_o <= '1' when (index_r = 255) else '0';
+
+
 	 
 
 
@@ -119,17 +121,18 @@ begin
             if(swap_compute_j_i = '1') then
                 swap_j_r <= swap_next_j;
                 swap_temp_r <= unsigned(q_w_i);
+            end if;
 
-            elsif(swap_write_j_i = '1') then
+            if(swap_write_j_i = '1') then
+                swap_i_r <= swap_i_r + 1;
+
                 if(swap_done = '1') then
                     swap_i_r    <= to_unsigned(0, swap_i_r'length);
                     swap_j_r    <= to_unsigned(0, swap_j_r'length);
                     swap_temp_r <= to_unsigned(0, swap_temp_r'length);
-                else
-                    swap_i_r <= swap_i_r + 1;
                 end if;
-
             end if;	
+
         end if;
     end process;
 
@@ -149,21 +152,33 @@ begin
             decrypt_k_r     <= to_unsigned(0, decrypt_k_r'length);
             decrypt_s_i_r   <= to_unsigned(0, 8);
             decrypt_s_j_r   <= to_unsigned(0, 8);
+            
         elsif(rising_edge(clk_i)) then
             if(decrypt_read_i = '1') then
                 decrypt_i_r <= decrypt_i_r + to_unsigned(1, 8);
+            end if;
 
-            elsif(decrypt_read_j = '1') then
+            if(decrypt_read_j = '1') then
                 decrypt_s_i_r <= unsigned(q_w_i);
                 decrypt_j_r <= decrypt_next_j;
+            end if;
 
-            elsif(decrypt_write_i = '1') then
+            if(decrypt_write_i = '1') then
                 decrypt_s_j_r <= unsigned(q_w_i);
+            end if;
 
-            elsif(decrypt_write_k = '1') then
+            if(decrypt_write_k = '1') then
                 decrypt_k_r <= decrypt_k_r + to_unsigned(1, decrypt_k_r'length);
 
+                if(decrypt_done = '1') then
+                    decrypt_i_r     <= to_unsigned(0, 8);
+                    decrypt_j_r     <= to_unsigned(0, 8);
+                    decrypt_k_r     <= to_unsigned(0, decrypt_k_r'length);
+                    decrypt_s_i_r   <= to_unsigned(0, 8);
+                    decrypt_s_j_r   <= to_unsigned(0, 8);
+                end if;
             end if;
+
         end if;
     end process;	
 
@@ -178,8 +193,8 @@ begin
         if(rst_i = '1') then
             check_addr_r    <= to_unsigned(0, 5);
             check_addr_d_r  <= to_unsigned(0, 5);
-            -- secret_key_r    <= to_unsigned(0, secret_key_r'length);
-            secret_key_r    <= x"035f3c";
+            secret_key_r    <= to_unsigned(0, secret_key_r'length);
+
         elsif(rising_edge(clk_i)) then
             check_addr_d_r <= check_addr_r;
 
@@ -200,7 +215,7 @@ begin
     check_fail          <= '0' when (unsigned(q_d_i) = 32 or (unsigned(q_d_i) >= 97 and unsigned(q_d_i) <= 122)) else '1';
     check_fail_o        <= check_fail;
 	 
-
+    
 	 
     -- Printing state logic
     process(clk_i, rst_i) begin
@@ -214,7 +229,7 @@ begin
 	end process;	
 
 
-    
+
     -- Memory signal control
     process(
         fill_i,

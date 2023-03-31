@@ -125,8 +125,8 @@ begin
                     next_state <= SWAP_READ_I;
                 end if;
 
-
                 
+
             when DECRYPT_READ_I =>
                 next_state <= DECRYPT_READ_J;
 				
@@ -144,12 +144,13 @@ begin
 				
             when DECRYPT_WRITE_K =>
                 if(decrypt_done_i = '1') then
-                    next_state <= PRINT;
+                    next_state <= CHECK;
                 else
                     next_state <= DECRYPT_READ_I;
                 end if;	
 				
 
+                
             when CHECK =>
                 if(check_fail_i = '1') then
                     if(check_last_key_i = '1') then
@@ -160,7 +161,9 @@ begin
                 elsif(check_done_i = '1') then
                     next_state <= PRINT;
                 end if;
-					 
+					
+                
+
             when PRINT =>
                 if(print_done_i = '1') then
                     next_state <= DONE;
