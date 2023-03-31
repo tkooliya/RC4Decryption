@@ -28,7 +28,8 @@ architecture structure of ic_lcd_driver is
         INIT,
         PRINT,
         NEW_LINE,
-        CLEAR
+        CLEAR,
+		  DONE
     );
 
         
@@ -106,7 +107,7 @@ begin
                     data_i              when curr_macro_state = PRINT else -- need to change
                     lcd_new_line_data   when curr_macro_state = NEW_LINE else
 						  "00000000";
-	 print_lcd_o <= '1' when curr_macro_state = PRINT else '0';
+	 print_lcd_o <= '1' when ((curr_macro_state = PRINT AND NOT(next_macro_state = NEW_LINE)) OR (next_macro_state = PRINT)) else '0';
                 
 
 
@@ -141,7 +142,7 @@ begin
                     if(cursor_y = '0') then
                         next_macro_state <= NEW_LINE;
                     else
-                        next_macro_state <= CLEAR;
+                        next_macro_state <= DONE;
                     end if;
                 else
                     next_macro_state <= PRINT;
@@ -155,6 +156,9 @@ begin
 					print_done_o <= '1';
                next_macro_state <= CLEAR;
 					
+				when DONE =>
+					print_done_o <= '1';
+					next_macro_state <= DONE;
         end case;
     end process;
 

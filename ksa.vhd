@@ -306,13 +306,17 @@ begin
     secret_key <= "000000" & SW;
 	 
 	 
-	 process(CLOCK_50)
+	 process(CLOCK_50, rst_active_1)
+	 
 	 begin
-	 slowclk <= scaler(25);
-	 if(rising_edge(CLOCK_50)) then
+	 if(rst_active_1 = '1') then
+		scaler <= to_unsigned(0, scaler'length);
+	 elsif(rising_edge(CLOCK_50)) then
 		scaler <= scaler + 1;
 	 end if;
 	 end process;
+	 
+	 slowclk <= scaler(25);
 
 end rtl;
 
