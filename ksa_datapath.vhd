@@ -226,20 +226,7 @@ begin
 					print_address_r <= print_address_r + 1;
 				end if;
 			end if;
-	end process;	
-
-    
-
-    -- Printing state logic
-    process(clk_i, rst_i) begin
-        if(rst_i = '1') then
-            print_address_r <= to_unsigned(0, 5);
-        elsif(rising_edge(clk_i)) then
-            if(print_i = '1' and print_address_r < 32) then
-                print_address_r <= print_address_r + to_unsigned(1, 5);
-            end if;
-        end if;
-    end process;
+	end process;
 
 
 

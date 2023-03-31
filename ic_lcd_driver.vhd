@@ -4,11 +4,10 @@ use ieee.numeric_std.all;
 
 entity ic_lcd_driver is
     port(
-		  print_i:	  in std_logic;
-		  data_i:     in std_logic_vector(7 downto 0);
-		  print_done_o : out std_logic;
-		  print_lcd_o  : out std_logic;
-		--  clear_done_o will need to add to begin reading address since it begins during the INIT state of LCD
+        print_i:	  in std_logic;
+        data_i:     in std_logic_vector(7 downto 0);
+        print_done_o : out std_logic;
+        print_lcd_o  : out std_logic;
         lcd_en:     out std_logic;
         lcd_data:   out std_logic_vector(7 downto 0);
         lcd_rs:     out std_logic;
@@ -28,8 +27,7 @@ architecture structure of ic_lcd_driver is
         INIT,
         PRINT,
         NEW_LINE,
-        CLEAR,
-		  DONE
+        DONE
     );
 
         
@@ -84,21 +82,11 @@ architecture structure of ic_lcd_driver is
     constant    NEW_LINE_CMD:       std_logic_vector(7 downto 0) := "11000000";
     signal      lcd_new_line_data:  std_logic_vector(7 downto 0);
 
-
-    -- CLEAR macro state
-    -- Clears the display and sets the cursor position to 0 on the first line
-    -- Uses initialization instructions 2 and 4
-    signal lcd_clear_data:          std_logic_vector(7 downto 0);
-    signal clear_instr_idx:         std_logic; -- Only 2 instructions, so binary index
-    signal next_clear_instr_idx:    std_logic;
-    signal clear_done:              std_logic;
-
-
 begin
 
 
     -- LCD Port logic
-    lcd_en      <= clk_i;
+    lcd_en      <= clk_i when (curr_macro_state /= DONE) else '0';
     lcd_rw      <= '0';
     lcd_on      <= '1';
     lcd_blon    <= '1';
@@ -106,7 +94,7 @@ begin
     lcd_data    <=  lcd_init_data       when curr_macro_state = INIT else
                     data_i              when curr_macro_state = PRINT else -- need to change
                     lcd_new_line_data   when curr_macro_state = NEW_LINE else
-						  "00000000";
+					"00000000";
 	 print_lcd_o <= '1' when ((curr_macro_state = PRINT AND NOT(next_macro_state = NEW_LINE)) OR (next_macro_state = PRINT)) else '0';
                 
 
@@ -118,49 +106,37 @@ begin
         end if;
     end process;
 
-    process(curr_macro_state, init_done, clear_done, print_i, cursor_x, cursor_y) begin
+    process(curr_macro_state, init_done, print_i, cursor_x, cursor_y) begin
+        next_macro_state <= curr_macro_state;
+
         case curr_macro_state is
             when RESET =>
-					 print_done_o <= '0';
-					 if(print_i = '1') then
-						  next_macro_state <= INIT;
-					 else
-						  next_macro_state <= RESET;
-					 end if;
-
-            when INIT =>
-					 print_done_o <= '0';
-                if(init_done = '1') then
-                    next_macro_state <= PRINT;
-                else
+                if(print_i = '1') then
                     next_macro_state <= INIT;
                 end if;
 
+            when INIT =>
+                if(init_done = '1') then
+                    next_macro_state <= PRINT;
+                end if;
+
             when PRINT =>
-					 print_done_o <= '0';
                 if(cursor_x = 15) then
                     if(cursor_y = '0') then
                         next_macro_state <= NEW_LINE;
                     else
                         next_macro_state <= DONE;
                     end if;
-                else
-                    next_macro_state <= PRINT;
                 end if;
 
             when NEW_LINE =>
-					print_done_o <= '0';
-					next_macro_state <= PRINT;
-                    
-            when CLEAR =>
-					print_done_o <= '1';
-               next_macro_state <= CLEAR;
-					
-				when DONE =>
-					print_done_o <= '1';
-					next_macro_state <= DONE;
+                next_macro_state <= PRINT;
+
+            when others =>
         end case;
     end process;
+
+    print_done_o <= '1' when (curr_macro_state = DONE) else '0';
 
 
     -- INIT state control

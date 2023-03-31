@@ -203,10 +203,6 @@ end component;
     signal check_done       : std_logic;
     signal check_fail       : std_logic;
     signal check_last_key   : std_logic;
-	 
-    -- Display signals
-    signal print : std_logic;
-    signal print_done : std_logic;
 
     signal secret_key       : std_logic_vector(23 downto 0);
 
