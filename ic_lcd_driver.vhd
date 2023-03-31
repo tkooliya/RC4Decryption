@@ -100,11 +100,11 @@ begin
     lcd_rw      <= '0';
     lcd_on      <= '1';
     lcd_blon    <= '1';
-    lcd_rs      <= '1' when curr_macro_state = PRINT else '0';
+    lcd_rs      <= '1' when curr_macro_state = PRINT else '0'; -- can use lcd_rs to skip init and row change when reading q
     lcd_data    <=  lcd_init_data       when curr_macro_state = INIT else
                     data_i              when curr_macro_state = PRINT else -- need to change
-                    data_i              when curr_macro_state = NEW_LINE else
-                    lcd_clear_data;  -- need to remove clear state
+                    lcd_new_line_data   when curr_macro_state = NEW_LINE else
+						  "00000000";
                 
 
 
