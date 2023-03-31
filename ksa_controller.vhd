@@ -125,7 +125,7 @@ begin
                     next_state <= SWAP_READ_I;
                 end if;
 
-                
+
 
             when DECRYPT_READ_I =>
                 next_state <= DECRYPT_READ_J;
@@ -176,7 +176,7 @@ begin
     fill_o              <= '1' when (curr_state = FILL) else '0';
 
     swap_read_i_o       <= '1' when (curr_state = SWAP_READ_I) else '0';
-    swap_compute_j_o    <= '1' when (c  urr_state = SWAP_COMPUTE_J) else '0';
+    swap_compute_j_o    <= '1' when (curr_state = SWAP_COMPUTE_J) else '0';
     swap_read_j_o       <= '1' when (curr_state = SWAP_READ_J) else '0';
     swap_write_i_o      <= '1' when (curr_state = SWAP_WRITE_I) else '0';
     swap_write_j_o      <= '1' when (curr_state = SWAP_WRITE_J) else '0';
@@ -190,7 +190,7 @@ begin
 
     check_o             <= '1' when (curr_state = CHECK) else '0';
 
-    print_o			    <= '1' when (curr_state = PRINT) else '0';
+    print_o             <= '1' when (curr_state = PRINT) else '0';
 
     done_o              <= '1' when (curr_state = DONE) else '0';
     no_sol_o            <= '1' when (curr_state = NO_SOL) else '0';

@@ -27,17 +27,16 @@ architecture rtl of ksa is
 
 component ic_lcd_driver is
     port(
-		  print_i:	  in std_logic;
-		  data_i:     in std_logic_vector(7 downto 0);
-		  print_done_o : out std_logic;
-		  print_lcd_o  : out std_logic;
+        print_i:	  in std_logic;
+        data_i:     in std_logic_vector(7 downto 0);
+        print_done_o : out std_logic;
+        print_lcd_o  : out std_logic;
         lcd_en:     out std_logic;
         lcd_data:   out std_logic_vector(7 downto 0);
         lcd_rs:     out std_logic;
         lcd_rw:     out std_logic;
         lcd_on:     out std_logic;
         lcd_blon:   out std_logic;
-
         clk_i:   in std_logic
     );
 end component;
@@ -178,10 +177,10 @@ end component;
 	
     signal swap_done        : std_logic;
     signal swap_read_i      : std_logic;
-	 signal swap_compute_j   : std_logic;
+    signal swap_compute_j   : std_logic;
     signal swap_read_j      : std_logic;
-	 signal swap_write_i     : std_logic;
-	 signal swap_write_j     : std_logic;
+    signal swap_write_i     : std_logic;
+    signal swap_write_j     : std_logic;
 
     signal decrypt_done     : std_logic;
     signal decrypt_read_i   : std_logic;
@@ -192,18 +191,22 @@ end component;
     signal decrypt_write_k  : std_logic;
 	 
 	 
-	 -- Display signals
-	 signal print : std_logic;
-	 signal print_done : std_logic;
-	 signal scaler : unsigned(25 downto 0);
-	 signal slowclk : std_logic;
-	 signal print_driver : std_logic;
+    -- Display signals
+    signal print : std_logic;
+    signal print_done : std_logic;
+    signal scaler : unsigned(25 downto 0);
+    signal slowclk : std_logic;
+    signal print_driver : std_logic;
 
 
     signal check            : std_logic;
     signal check_done       : std_logic;
     signal check_fail       : std_logic;
     signal check_last_key   : std_logic;
+	 
+    -- Display signals
+    signal print : std_logic;
+    signal print_done : std_logic;
 
     signal secret_key       : std_logic_vector(23 downto 0);
 
@@ -261,9 +264,9 @@ begin
 
             fill_done_i         => fill_done,
             fill_o              => fill,
-				
-				print_done_i		  => print_done,
-				print_o				  => print,
+            
+            print_done_i		  => print_done,
+            print_o				  => print,
 
             swap_done_i         => swap_done, 
             swap_read_i_o       => swap_read_i,
